@@ -1,0 +1,37 @@
+Input #0, lavfi, from 'testsrc2=size=1280x720:rate=30':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> h264 (libx264))
+[libx264 @ 0x55aba576c0] using SAR=1/1
+[libx264 @ 0x55aba576c0] using cpu capabilities: ARMv8 NEON
+[libx264 @ 0x55aba576c0] profile High, level 3.1, 4:2:0, 8-bit
+[libx264 @ 0x55aba576c0] 264 - core 164 r3108 31e19f9 - H.264/MPEG-4 AVC codec - Copyleft 2003-2023 - http://www.videolan.org/x264.html - options: cabac=1 ref=1 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=2 psy=1 psy_rd=1.00:0.00 mixed_ref=0 me_range=16 chroma_me=1 trellis=0 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=0 threads=6 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=1 keyint=250 keyint_min=25 scenecut=40 intra_refresh=0 rc_lookahead=10 rc=abr mbtree=1 bitrate=4000 ratetol=1.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to '/tmp/tmp.KO2NeU9BRn/sw.mp4':
+  Metadata:
+    encoder         : Lavf61.7.103
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], q=2-31, 4000 kb/s, 30 fps, 15360 tbn
+      Metadata:
+        encoder         : Lavc61.19.101 libx264
+      Side data:
+        cpb: bitrate max/min/avg: 0/0/4000000 buffer size: 0 vbv_delay: N/A
+frame=   17 fps=0.0 q=25.0 size=     256KiB time=00:00:00.50 bitrate=4195.1kbits/s speed=0.974x    frame=   50 fps= 49 q=25.0 size=     768KiB time=00:00:01.60 bitrate=3932.4kbits/s speed=1.58x    frame=   85 fps= 56 q=25.0 size=    1280KiB time=00:00:02.76 bitrate=3790.2kbits/s speed=1.82x    frame=  118 fps= 58 q=25.0 size=    1792KiB time=00:00:03.86 bitrate=3796.7kbits/s speed=1.92x    frame=  153 fps= 61 q=25.0 size=    2304KiB time=00:00:05.03 bitrate=3750.0kbits/s speed=   2x    frame=  187 fps= 62 q=24.0 size=    2816KiB time=00:00:06.16 bitrate=3740.9kbits/s speed=2.04x    frame=  219 fps= 62 q=24.0 size=    3328KiB time=00:00:07.23 bitrate=3769.1kbits/s speed=2.06x    frame=  253 fps= 63 q=25.0 size=    4096KiB time=00:00:08.36 bitrate=4010.5kbits/s speed=2.08x    frame=  291 fps= 64 q=25.0 size=    4608KiB time=00:00:09.63 bitrate=3918.6kbits/s speed=2.13x    [out#0/mp4 @ 0x55aba595f0] video:4858KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.083907%
+frame=  300 fps= 66 q=-1.0 Lsize=    4862KiB time=00:00:09.93 bitrate=4009.7kbits/s speed=2.18x    
+bench: utime=15.391s stime=0.547s rtime=4.562s
+bench: maxrss=205832KiB
+[libx264 @ 0x55aba576c0] frame I:2     Avg QP: 6.48  size: 32176
+[libx264 @ 0x55aba576c0] frame P:119   Avg QP:12.62  size: 20352
+[libx264 @ 0x55aba576c0] frame B:179   Avg QP:22.55  size: 13897
+[libx264 @ 0x55aba576c0] consecutive B-frames:  6.0% 30.7% 38.0% 25.3%
+[libx264 @ 0x55aba576c0] mb I  I16..4: 87.6%  1.2% 11.2%
+[libx264 @ 0x55aba576c0] mb P  I16..4:  7.1%  0.8%  1.5%  P16..4:  3.8%  3.3%  2.5%  0.0%  0.0%    skip:81.0%
+[libx264 @ 0x55aba576c0] mb B  I16..4:  0.4%  0.0%  0.0%  B16..8:  6.4%  3.7%  1.3%  direct: 1.8%  skip:86.3%  L0:36.2% L1:36.4% BI:27.3%
+[libx264 @ 0x55aba576c0] final ratefactor: 18.52
+[libx264 @ 0x55aba576c0] 8x8 transform intra:7.5% inter:10.2%
+[libx264 @ 0x55aba576c0] coded y,uvDC,uvAC intra: 19.2% 28.1% 26.0% inter: 4.2% 7.4% 6.5%
+[libx264 @ 0x55aba576c0] i16 v,h,dc,p: 91%  7%  2%  0%
+[libx264 @ 0x55aba576c0] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 11% 23% 39%  9%  3%  2%  2%  6%  5%
+[libx264 @ 0x55aba576c0] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 19% 20% 34%  6%  6%  3%  4%  5%  4%
+[libx264 @ 0x55aba576c0] i8c dc,h,v,p: 74%  9% 16%  1%
+[libx264 @ 0x55aba576c0] Weighted P-Frames: Y:0.0% UV:0.0%
+[libx264 @ 0x55aba576c0] kb/s:3979.09

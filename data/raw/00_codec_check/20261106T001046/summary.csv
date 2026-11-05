@@ -1,0 +1,5 @@
+run,status,frames,fps,speed,utime_s,stime_s,rtime_s,cpu_cores_used,governor,temp_before_C,temp_after_C,throttled_after
+hw_enc,ok,300,155,5.16,4.294,0.297,1.931,2.38,ondemand,56.4,57.9,0x0
+sw_enc,ok,300,66,2.18,15.391,0.547,4.562,3.49,ondemand,54.0,60.3,0x0
+hw_dec,ok,300,184,6.12,0.062,0.114,1.635,0.11,ondemand,55.5,56.0,0x0
+sw_dec,ok,300,0.0,10.2,3.074,0.138,0.985,3.26,ondemand,54.5,57.9,0x0
