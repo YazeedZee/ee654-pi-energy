@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.7)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.8)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -205,6 +205,8 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 - [x] Update bootloader EEPROM and record new version (done 2026-11-03).
 - [x] Project repo created (scripts, setup runbook, results pushed after every session); see `README.md` and `docs/setup.md`.
 - [ ] Freeze platform for the study: stop EEPROM auto-updates (`sudo apt-mark hold rpi-eeprom`) and avoid `apt upgrade` during the measurement phase (kernel/firmware changes would confound results).
+- [ ] Find where hardware encode spends its ~12 ms CPU per frame (`perf record` on `hw_enc`); if it is frame copying, that is direct early evidence for H1.
+- [ ] Fix the CPU frequency (`userspace` governor at a set step, or `performance`) for all measurement runs; CPU-seconds are not comparable across runs when `ondemand` changes the clock.
 - [ ] Confirm with instructor that a Linux-based soft real-time project fits the scope.
 - [ ] Confirm whether STM32F4 is acceptable (as a power logger now, or as a controller in a later extension).
 - [ ] Decide the power-measurement upgrade (USB-C logger vs. INA226 + MCU).
@@ -230,11 +232,13 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 | 2026-11-03 | OS install | Raspberry Pi OS 2026-10-06, kernel 6.18.50, aarch64 | Boots; SSH works | Replaced previous install (Raspbian Bullseye 2021-10-30, 32-bit) |
 | 2026-11-05 | Network access | Desktop image re-flashed; direct Ethernet link | SSH works at 10.42.0.41 | Wi-Fi not joining. PC's UFW blocked DHCP on the adapter, so the Pi's Ethernet came up then dropped; fixed with an interface-scoped allow rule |
 | 2026-11-05 | Base setup | full-upgrade → kernel 6.18.60; console boot; ffmpeg 7.1.5 | Done | Ping passed but TCP was blocked until the UFW route rule was added (UFW forwards ICMP by default) |
+| 2026-11-06 | Exp 00 codec check (run 2, `20261106T001525`) | 720p30 synthetic, 300 frames, `ondemand`, no power data | HW codec works (`/dev/video10` dec, `/dev/video11` enc). CPU-ms/frame: sw_enc 50, hw_enc 12 (net of pattern generation), sw_dec 10.8, hw_dec 0.5. Throughput: hw_enc 159 fps, sw_enc 66, hw_dec 184, sw_dec 315. 49–56 °C, no throttling | Run 1 agreed within ~2%. hw_enc still costs ~12 ms CPU/frame (≈ software decode), so not free; cause unknown (frame copies? driver polling? frequency effects under `ondemand`). Not paper data |
 
 ---
 
 ## Changelog
 
+- **v0.8** (2026-11-06): Results log: experiment 00 run 2; open items on hardware-encode CPU cost and fixing the governor for measurements.
 - **v0.7** (2026-11-05): Moved into the project repo as `docs/plan.md`; corrected stale Lite references in §4.3 note and §5; repo open item.
 - **v0.6** (2026-11-05): Kernel 6.18.60 after upgrade; console boot target; HW codec devices; full list of PC-side network changes.
 - **v0.5** (2026-11-05): Image decision (desktop, console boot); management link and UFW rule recorded; Wi-Fi open item.
