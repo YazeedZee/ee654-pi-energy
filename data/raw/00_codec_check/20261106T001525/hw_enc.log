@@ -1,0 +1,19 @@
+Input #0, lavfi, from 'testsrc2=size=1280x720:rate=30':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> h264 (h264_v4l2m2m))
+[h264_v4l2m2m @ 0x558f1666e0]  <<< v4l2_encode_init: fmt=0/-1
+[h264_v4l2m2m @ 0x558f1666e0] Using device /dev/video11
+[h264_v4l2m2m @ 0x558f1666e0] driver 'bcm2835-codec' on card 'bcm2835-codec-encode' in mplane mode
+[h264_v4l2m2m @ 0x558f1666e0] requesting formats: output=YU12/yuv420p capture=H264/none
+Output #0, mp4, to '/tmp/tmp.cniQsim9Um/hw.mp4':
+  Metadata:
+    encoder         : Lavf61.7.103
+  Stream #0:0: Video: h264 (avc1 / 0x31637661), yuv420p(tv, progressive), 1280x720 [SAR 1:1 DAR 16:9], q=2-31, 4000 kb/s, 30 fps, 15360 tbn
+      Metadata:
+        encoder         : Lavc61.19.101 h264_v4l2m2m
+frame=   75 fps=0.0 q=-0.0 size=    1024KiB time=00:00:02.46 bitrate=3400.9kbits/s speed=4.93x    frame=  154 fps=154 q=-0.0 size=    2304KiB time=00:00:05.13 bitrate=3676.9kbits/s speed=5.13x    frame=  234 fps=156 q=-0.0 size=    3584KiB time=00:00:07.76 bitrate=3780.3kbits/s speed=5.17x    [out#0/mp4 @ 0x558f168610] video:4879KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.042030%
+frame=  300 fps=159 q=-0.0 Lsize=    4881KiB time=00:00:09.96 bitrate=4012.2kbits/s speed=5.27x    
+bench: utime=4.167s stime=0.360s rtime=1.890s
+bench: maxrss=57872KiB

@@ -1,0 +1,6 @@
+run,status,frames,fps_wall,speed,utime_s,stime_s,rtime_s,cpu_s,cpu_cores_used,hw_device,governor,temp_before_C,temp_after_C,throttled_after
+gen_only,ok,300,352.1,11.7,0.891,0.035,0.852,0.926,1.09,-,ondemand,50.6,50.6,0x0
+hw_enc,ok,300,158.7,5.27,4.167,0.360,1.890,4.527,2.40,/dev/video11,ondemand,49.1,51.1,0x0
+sw_enc,ok,300,66.2,2.19,15.466,0.506,4.530,15.972,3.53,-,ondemand,50.1,56.0,0x0
+hw_dec,ok,300,183.8,6.13,0.073,0.081,1.632,0.154,0.09,/dev/video10,ondemand,51.6,51.6,0x0
+sw_dec,ok,300,315.1,10.5,3.095,0.133,0.952,3.228,3.39,-,ondemand,50.6,53.0,0x0

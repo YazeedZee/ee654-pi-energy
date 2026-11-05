@@ -1,0 +1,15 @@
+Input #0, lavfi, from 'testsrc2=size=1280x720:rate=30':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 1280x720 [SAR 1:1 DAR 16:9], 30 fps, 30 tbr, 30 tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> wrapped_avframe (native))
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf61.7.103
+  Stream #0:0: Video: wrapped_avframe, yuv420p(progressive), 1280x720 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 30 fps, 30 tbn
+      Metadata:
+        encoder         : Lavc61.19.101 wrapped_avframe
+frame=  177 fps=0.0 q=-0.0 size=N/A time=00:00:05.90 bitrate=N/A speed=11.8x    [out#0/null @ 0x55c9eca580] video:129KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=  300 fps=0.0 q=-0.0 Lsize=N/A time=00:00:10.00 bitrate=N/A speed=11.7x    
+bench: utime=0.891s stime=0.035s rtime=0.852s
+bench: maxrss=51472KiB
