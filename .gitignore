@@ -1,0 +1,33 @@
+# Input videos: large, tracked by checksum only
+data/inputs/*
+!data/inputs/README.md
+!data/inputs/SHA256SUMS
+
+# Media and disk images anywhere
+*.mp4
+*.mkv
+*.h264
+*.yuv
+*.img
+*.img.zst
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# LaTeX build files
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz
+paper/*.fdb_latexmk
+paper/*.fls
+
+# Editors / OS
+.vscode/
+*.swp
+.DS_Store
