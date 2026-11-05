@@ -1,4 +1,4 @@
-# EE654 Pi Energy Study (v0.1)
+# EE654 Pi Energy Study (v0.2)
 
 **Energy vs. deadlines in a soft real-time video pipeline on the Raspberry Pi 4.**
 Course project for EE654 Embedded and Real-Time Systems (Fall 2026).
@@ -40,7 +40,7 @@ The research plan (questions, hypotheses, experimental design, platform record) 
 
 | ID | Script | Purpose | Status |
 |---|---|---|---|
-| 00 | `experiments/00_codec_check.sh` | Confirm H.264 hardware encode/decode works; first HW vs. SW comparison (no power data) | ready to run |
+| 00 | `experiments/00_codec_check.sh` | Confirm H.264 hardware encode/decode works; first HW vs. SW comparison (no power data) | run 2026-11-06; fixed, re-run |
 
 ## Conventions
 
@@ -50,4 +50,5 @@ The research plan (questions, hypotheses, experimental design, platform record) 
 
 ## Changelog
 
+- **v0.2** (2026-11-06): Experiment 00 fixes: fps from frames / wall time (ffmpeg reports 0 for runs under 1 s), `gen_only` baseline so encoder CPU can be separated from test-pattern generation, logs the V4L2 device used.
 - **v0.1** (2026-11-05): Initial repo: plan, setup runbook, setup/sysinfo/backup/save scripts, experiment 00.
