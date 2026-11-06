@@ -2,6 +2,10 @@
 data/inputs/*
 !data/inputs/README.md
 !data/inputs/SHA256SUMS
+!data/inputs/SOURCES.sha256
+
+# Detector model files: fetched by scripts/fetch_model.sh, verified by checksum
+pipeline/models/
 
 # Media and disk images anywhere
 *.mp4

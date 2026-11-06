@@ -31,7 +31,7 @@ if [[ "${1:-}" == "--upgrade" ]]; then
   echo "   full-upgrade requested"
   apt-get full-upgrade -y
 fi
-apt-get install -y ffmpeg git rsync stress-ng htop python3-numpy python3-pandas
+apt-get install -y ffmpeg git rsync stress-ng htop python3-numpy python3-pandas python3-av python3-opencv
 
 echo "== freeze bootloader firmware updates for the study"
 apt-mark hold rpi-eeprom

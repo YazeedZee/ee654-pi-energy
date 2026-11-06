@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.11)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.12)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -113,7 +113,9 @@ Keep this table current; it becomes the paper's setup section.
 
 - Raspberry Pi OS 64-bit, desktop image booted to console (headless), configured by `scripts/setup_pi.sh`
 - ffmpeg with V4L2 M2M support (hardware codec)
-- Detector: OpenCV DNN or TFLite (small model, e.g., MobileNet-SSD class)
+- Detector: OpenCV 4.x DNN with MobileNet-SSD (Caffe, PASCAL VOC), fetched and checksum-verified by `scripts/fetch_model.sh`
+- Pipeline v1: Python, PyAV (system ffmpeg, incl. `h264_v4l2m2m`) for decode/encode, `pipeline/run_pipeline.py`
+- Inputs: Xiph `pedestrian_area` (low motion) and `crowd_run` (high motion), 720p30 and 1080p30, `scripts/fetch_inputs.sh`
 - `cpufreq` governors + `userspace` governor for the custom controller
 - `chrt` / `sched_setattr` for `SCHED_FIFO` and `SCHED_DEADLINE`; `taskset` / cpusets for pinning
 - PREEMPT_RT kernel (optional, phase 3)
@@ -132,6 +134,7 @@ Keep this table current; it becomes the paper's setup section.
 | Video content | Low motion, high motion |
 | Codec placement | CPU, HW codec (copy), HW codec (zero-copy) |
 | Run length | short (cold chip, < 30 s), sustained (≥ 3 min, throttling allowed) |
+| Detector load | detect every N frames, N ∈ {1, 3, 10} (load sweep: shows at what CPU load offloading starts to matter) |
 | Frequency policy | performance, ondemand, schedutil, race-to-idle, slack controller, fixed frequencies |
 | Scheduler | CFS, SCHED_FIFO pinned, SCHED_DEADLINE |
 | Background load | none, stress-ng |
@@ -172,7 +175,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 
 **Goal:** confirm the main question has a measurable effect before building everything.
 
-1. Build pipeline v1: decode → preprocess → detect → overlay → encode, with a timestamp at each stage boundary and a clock/temperature sample per frame.
+1. Build pipeline v1: decode → preprocess → detect → overlay → encode, with a timestamp at each stage boundary and a clock/temperature sample per frame. **Done:** `pipeline/run_pipeline.py`, run by `experiments/02_week1_offload.sh` (default N = 3).
 2. Two modes: **software** (CPU decode + `libx264`) and **hardware** (`h264_v4l2m2m` decode + encode); same detector in both.
 3. One sustained run (≥ 3 min) per mode, interleaved, `ondemand` governor, same input clip.
 4. Plot per-frame stage times and the ARM clock over the run, for both modes.
@@ -216,7 +219,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 - [ ] Confirm with instructor that a Linux-based soft real-time project fits the scope.
 - [ ] Confirm whether STM32F4 is acceptable (as a power logger now, or as a controller in a later extension).
 - [ ] Decide the power-measurement upgrade (USB-C logger vs. INA226 + MCU).
-- [ ] Choose the detector model.
+- [x] Detector and inputs chosen (2026-11-06): conventional choices fixed before any results (MobileNet-SSD; Xiph clips). Detector load is swept (N) rather than picked, so the result does not depend on one hand-chosen workload.
 - [ ] Choose the paper for the review talk.
 
 ---
@@ -246,6 +249,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 
 ## Changelog
 
+- **v0.12** (2026-11-06): Detector, inputs and pipeline v1 recorded; detector load sweep (N) added as a factor.
 - **v0.11** (2026-11-06): Research focus changed: RQ1 (offloading under passive cooling) is now the main question, testing the fixed-execution-time assumption; RQ2 supporting (short runs); RQ3 optional. Rewrote §2, §6.5, §7; updated title, system model, factors, metrics, milestones.
 - **v0.10** (2026-11-06): Cooling decision: passive cooling, throttling measured and reported rather than prevented; controls updated.
 - **v0.9** (2026-11-06): Fan broken; thermal soak shows throttling to 600 MHz at 85.7 °C with heatsinks only; cooling and thermal-protocol open items; controls updated.
