@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.22)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.23)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -182,6 +182,8 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 3. One sustained run (≥ 3 min) per mode, interleaved, `ondemand` governor, same input clip.
 4. Plot per-frame stage times and the ARM clock over the run, for both modes.
 
+**Outcome (2026-11-07, reference runs):** hw sustains 30 fps (utilization 0.86) where sw cannot (1.66); at equal work hw uses 52% less CPU and runs 7.3 °C cooler. No throttling at the pipeline's load, with or without fan, within 3 min → per the rule below, lead with the direct result (H1a) and report the throttling threshold (exp 01: full 4-core load, no fan) and the thermal headroom.
+
 **Decision rule:**
 - Software mode throttles and its per-frame time grows while hardware mode stays flat → **H1b is alive; proceed.**
 - Neither mode throttles at the real pipeline load → thermal angle is weak at this workload; lead with the direct energy result (H1a) and report the load at which throttling starts (exp 01 shows it does under full load).
@@ -219,7 +221,10 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 - [x] Cooling decision (superseded 2026-11-07 by fan always on): passive (heatsinks + PC intake airflow). Throttling is allowed, logged per run (temperature, ARM clock, `get_throttled`) and reported; HW and SW runs interleaved so both see the same thermal history. Discussed as a deployment-realistic condition in the paper.
 - [ ] Fix the CPU frequency (`userspace` governor at a set step, or `performance`) for all measurement runs; CPU-seconds are not comparable across runs when `ondemand` changes the clock.
 - [x] Reference runs on the verified supply (2026-11-06/07): 30 fps clean; 15 fps clean for CPU, temperature invalid (airflow changed).
-- [ ] **Reference runs with fan on** (decision 2026-11-07): exp 02 at 30 fps and at 15 fps (equal work), PC idle, board position unchanged; check each with `clock_check.py`.
+- [x] Reference runs with fan on (2026-11-07): 30 fps `20261107T001714`, 15 fps `20261107T003226`; both clean.
+- [ ] **Energy measurement** for the equal-work comparison: power meter needed (USB-C logger or INA226 + STM32). Interim: read the wall meter during sw vs. hw at 15 fps (relative comparison only).
+- [ ] Detector load sweep N ∈ {1, 3, 10} at 15 fps (fan on).
+- [ ] Pipeline v2: detection on its own thread, so the deadline-miss ratio reflects the frame path rather than queueing behind inline detection.
 - [ ] Cooling comparison: the clean passive 30 fps run (`20261106T233239`) serves as the **no-fan** condition against the fan-on reference; blower comparison still later.
 - [ ] Note in each run's record: board position and whether the PC was in use.
 - [ ] Cooling bracket: repeat exp 01 (5 min) with case off, then with an electric air blower at fixed position/speed; compare with the case-on run (85.7 °C, throttled to 600 MHz).
@@ -263,10 +268,13 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | 2026-11-06 | **Reference run, 30 fps** (`20261106T233239`) | USB-C brick, case off, N = 10, 180 s × (sw hw hw sw) | sw 17.6 fps, utilization 1.68, 136.7–137.6 ms CPU/frame; hw 30.0 fps, utilization 0.88–0.89, 75.2–76.7 ms CPU/frame. Clock 1800 MHz throughout, no throttle bits, sticky flags 0x0. 56–58 → 68–72 °C | **Reference dataset.** Matches the preliminary run within 1–2%: the earlier under-voltage effect was negligible. Supply verified adequate |
 | 2026-11-07 | **Reference run, 15 fps equal work** (`20261106T234758`) | as above, FPS = 15 | sw 2.17–2.21 cores, 144–148 ms CPU/frame, utilization 0.86–0.88; hw 1.04–1.05 cores, 70 ms CPU/frame, utilization 0.40–0.41. No throttle bits. hw clock min 800 MHz (governor, light load). **Temperatures inconsistent:** run 1 sw ended 62 °C but run 2 started 42 °C; hw runs cooled while running (42 → 39 °C); run 4 started 34.6 °C | **CPU result replicated: hw −52% CPU at equal work.** Temperature comparison **not valid** for this run: cooling changed during the experiment. **Cause (2026-11-07): the Pi's own fan started working again partway through** (PC intake airflow may also vary with PC load). The ~9 °C difference from the preliminary run remains unconfirmed. Thermal comparisons need stable surroundings; ambient/airflow to be recorded |
 
+| 2026-11-07 | **Exp 02 reference, fan on, 30 fps** (`20261107T001714`) | fan always on, case off, USB-C brick, PC idle, N = 10, 180 s × (sw hw hw sw) | **sw utilization 1.66, 135 ms CPU/frame, 17.8–17.9 fps; hw utilization 0.86, 73.5 ms CPU/frame, 30.0 fps.** 32–35 → 44–45 °C. Clock 1800 MHz throughout, no throttle conditions, flags 0x0 | **Reference dataset (30 fps).** Versus the no-fan run (`20261106T233239`, 68–72 °C): fan lowers end temperature ~25 °C but changes utilization only ~2%: at this load cooling sets temperature, not speed |
+| 2026-11-07 | **Exp 02 reference, fan on, 15 fps equal work** (`20261107T003226`) | as above, FPS = 15 | **sw 2.17–2.18 cores, 145 ms CPU/frame, utilization 0.87; hw 1.04–1.06 cores, 70 ms CPU/frame, utilization 0.41.** Matched pair from 34.1 °C: **hw → 37.0 °C, sw → 44.3 °C** (+2.9 vs +10.2 °C). hw clock dips to 800 MHz (governor, light load); no throttle conditions, flags 0x0 | **Reference dataset (15 fps).** Equal work: hw −52% CPU and **7.3 °C cooler** after 3 min. Thermal-headroom result confirmed in clean conditions |
 ---
 
 ## Changelog
 
+- **v0.23** (2026-11-07): Fan-on reference runs logged (30 and 15 fps, clean); week-one outcome recorded in §7; next items: energy measurement, load sweep, pipeline v2.
 - **v0.22** (2026-11-07): Title, focus and RQ1 reworded for fan-on reference runs (cooling now a condition, not the premise). Cooling decision changed: fan always on for reference runs; passive 30 fps run kept as the no-fan condition; reference re-runs (30 and 15 fps) with fan on as open items.
 - **v0.21** (2026-11-07): 15 fps temperature confound attributed to the Pi fan restarting; fan unplugged for reference runs; fan-on condition added as later item.
 - **v0.20** (2026-11-07): Reference runs (30 fps and 15 fps) logged: CPU results replicated and clean; 15 fps temperatures invalid (airflow changed); open items for stable-surroundings repeat.
