@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.14)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.15)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -247,11 +247,13 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | 2026-11-06 | Exp 02 smoke test (`20261106T204009`) | pipeline v1, pedestrian_area 720p30, N = 3, 20 s × (sw hw hw sw) | **Both modes overloaded:** sw 11.1 fps, hw 5.0 fps (target 30). Detection ≈ 115 ms per call. **hw slower and uses more CPU per frame** (302 vs 239 ms) although its decode (0.4 ms) and encode (1.7 ms) stages are tiny: ~150 ms per frame unaccounted for in the printed stages | Suspect: CPU access to hardware-codec buffers (colour conversion of decoded frames), same family as exp 00's 12 ms hw-encode cost → early H1 evidence, to confirm. Runner fixed: runs bounded by wall-clock time; service time and utilization reported, since latency is meaningless when overloaded |
 | 2026-11-06 | Exp 02 smoke test 2 (`20261106T211822`) | as above, new runner | hw `to_bgr` 142–162 ms per frame vs sw 4–5 ms. sw cannot reach 30 fps even on frames without detection (~48 ms typical service time). Detection 110–155 ms per call | Locates the hw slowdown in the colour conversion of decoded frames. Exp 00's "hw decode nearly free" held only because its null output never read the pixels |
 | 2026-11-06 | Exp 03 frame access (`20261106T215616`) | 720p, 150 frames, medians | Raw copy of decoded planes: sw 0.93 ms (1483 MB/s), **hw 2.33 ms (595 MB/s)**. Copy then OpenCV convert: hw 2.33 + 2.03 ms. **PyAV direct conversion of hw frames: 138 ms** (sw 3.9 ms) | Hardware decoder buffers are ~2.5× slower for the CPU to read (small, real data-movement cost: H1). The 138 ms is the conversion's access pattern on that memory, not the memory alone: copy-then-convert is ~30× faster. Pipeline now uses copy-then-convert for both modes (`--convert copy`, default); direct path kept as an option |
+| 2026-11-06 | Exp 02 smoke test 3 (`20261106T215838`) | copy-then-convert, **N = 10**, 20 s × (sw hw hw sw) | **hw ≈ 30 fps, utilization 0.87–0.97; sw 17.5 fps, utilization 1.66.** CPU per frame hw 75–83 ms vs sw 136 ms. hw to_bgr 10 ms in the pipeline (4.4 ms in isolation, exp 03). Miss ratio hw 72–93% despite utilization < 1. 41–55 °C, short runs | First configuration where hw is feasible and sw is not; the conversion fix reversed the hw/sw ordering. Thin hw margin: a clock drop could push it past 1 (test in sustained run). High miss ratio at utilization < 1 = queueing after each ~125 ms inline-detection frame; utilization and throughput are the reliable metrics for pipeline v1; a meaningful miss ratio needs detection decoupled (pipeline v2) |
 
 ---
 
 ## Changelog
 
+- **v0.15** (2026-11-06): Results log: exp 02 smoke test 3 (N = 10: hw feasible, sw overloaded).
 - **v0.14** (2026-11-06): Results log: exp 02 smoke test 2 and exp 03 (hardware frame access); pipeline conversion fix.
 - **v0.13** (2026-11-06): Results log: exp 02 smoke test (both modes overloaded; hw unexpectedly slower).
 - **v0.12** (2026-11-06): Detector, inputs and pipeline v1 recorded; detector load sweep (N) added as a factor.
