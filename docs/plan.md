@@ -1,9 +1,9 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.19)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.22)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
 **Status:** Setup / pre-baseline
-**Working title:** *Offload or Throttle? Hardware Offloading, Energy and Deadline Predictability in a Passively Cooled Video Pipeline on the Raspberry Pi 4*
+**Working title:** *Offload or Throttle? Hardware Offloading, Energy and Deadline Predictability in a Video Pipeline on the Raspberry Pi 4*
 
 ---
 
@@ -11,7 +11,7 @@
 
 A video pipeline must finish every frame before a deadline (≈33 ms at 30 FPS). This project measures **how to meet that deadline with the least energy**, using three controls: *where* each stage runs (CPU, GPU, hardware codec), *how fast* the CPU runs (frequency scaling), and *how* stages are scheduled (Linux schedulers). It compares what scheduling and DVFS theory predicts against what the hardware actually does.
 
-**Focus (decided 2026-11-06):** hardware offloading leads, under passive cooling where the firmware throttles the CPU; frequency scaling is supporting; scheduler comparison is optional.
+**Focus (decided 2026-11-06; cooling updated 2026-11-07):** hardware offloading leads; cooling is a measured condition (fan on for reference runs, passive runs as the comparison); frequency scaling is supporting; scheduler comparison is optional.
 
 **Contribution type:** measurement study testing an assumption of real-time analysis (fixed execution time) on a passively cooled platform.
 
@@ -21,13 +21,13 @@ A video pipeline must finish every frame before a deadline (≈33 ms at 30 FPS).
 
 | ID | Question | Role in paper |
 |---|---|---|
-| **RQ1** | Does offloading video stages to the hardware codec reduce energy **and** keep frame deadlines met under passive cooling, and how much of the hardware–software gap is explained by thermal throttling? | **Main question** |
+| **RQ1** | Does offloading video stages to the hardware codec reduce energy **and** keep frame deadlines met, and how does cooling (fan vs. passive) change the hardware–software gap in temperature and throttling? | **Main question** |
 | RQ2 | How does per-stage execution time scale with CPU frequency (C(f) ∝ 1/f?), measured in short runs before the chip heats? | Supporting |
 | RQ3 | Which Linux scheduler best protects frame deadlines under background load? | Optional (only if time allows) |
 
-### RQ1: Offloading under passive cooling (main)
+### RQ1: Offloading (main), cooling as a condition
 - **Configurations:** decode and encode on CPU (`libx264`, software decode) vs. hardware codec (`h264_v4l2m2m`); frame transfer by copy vs. zero-copy (dmabuf) if achievable.
-- **Conditions:** short runs (cold chip, before throttling) vs. sustained runs (≥3 min, throttling allowed). Passive cooling by decision (see §4.1).
+- **Conditions:** sustained runs (≥3 min). Fan on for reference runs (2026-11-07); passive runs (fan off) as the cooling comparison (see §4.1).
 - **Hypothesis H1a (direct):** Hardware offload lowers energy per frame even without throttling, but less than its CPU savings suggest, because frame copies and fixed board power remain (exp 00: hardware encode still costs ~12 ms CPU per frame).
 - **Hypothesis H1b (thermal):** In sustained runs, software paths heat the chip until the firmware lowers the clock; their per-frame time grows and deadline misses appear partway through the run. Hardware paths stay below the throttling point, so their timing stays flat.
 - **Assumption under test:** real-time analysis (response-time analysis, utilization tests) treats a task's execution time C as fixed. Under passive cooling, C of CPU-heavy stages grows over the run as the clock drops; a task set that passes the analysis cold can miss deadlines minutes later.
@@ -54,7 +54,7 @@ A video pipeline must finish every frame before a deadline (≈33 ms at 30 FPS).
 - **Platform facts that shape the design:**
   - All four Cortex-A72 cores share **one clock**, so no per-core DVFS.
   - 13 frequency steps: 600–1800 MHz in 100 MHz increments. Core voltage is set by firmware, so not every step lowers voltage; voltage per step must be measured (`vcgencmd measure_volts core`).
-  - Passive cooling (decision): sustained full load throttles the CPU (exp 01: 85.7 °C, clock down to 600 MHz). Temperature, ARM clock and throttle flags are logged in every run.
+  - Cooling: fan always on for reference runs (2026-11-07). Without a fan, sustained full load throttles the CPU (exp 01: 85.7 °C, clock down to 600 MHz). Temperature, ARM clock and throttle flags are logged in every run.
   - No on-board power telemetry on Pi 4; power is measured externally.
 - **Input:** pre-recorded video files (repeatable), at least 2 resolutions × 2 motion levels.
 
@@ -67,7 +67,7 @@ A video pipeline must finish every frame before a deadline (≈33 ms at 30 FPS).
 |---|---|---|
 | Raspberry Pi 4 | Device under test | Check RAM size and board revision (`cat /proc/cpuinfo`) |
 | Heatsinks (CPU, RAM) | Thermal control | Fine, but not enough alone under sustained load |
-| Small fan (from kit) | — | Broken; not used. **Decision:** passive cooling (heatsinks, board placed in the PC's intake airflow). Throttling is treated as part of the system under test, measured per run and reported |
+| Small fan (from kit) | Active cooling | Broken until 2026-11-07 ~00:00, then working again. **Decision (2026-11-07): fan always on from here** (5 V, fixed speed); all reference runs use it. Earlier decision, superseded: passive cooling (heatsinks, board placed in the PC's intake airflow). Throttling is treated as part of the system under test, measured per run and reported |
 | Wall-plug inline power meter | Coarse power reading | See limitations in 4.2 |
 | UART adapters | Debug console; future STM32 link | Not needed for phase 1 |
 
@@ -196,7 +196,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | Proposal | 5% | Problem, RQs, hypotheses, system model (sections 2–3 of this file) |
 | Mid-term review | 10% | Pipeline v1 in hardware and software modes, per-stage times with clock traces, first energy numbers |
 | Final demo | 20% | Live pipeline in hardware and software modes side by side: frame times, clock, temperature, energy and deadline misses |
-| Final paper | 15% | 6-page IEEE paper: RQ1 main (offloading under passive cooling), RQ2 supporting, RQ3 only if time allows |
+| Final paper | 15% | 6-page IEEE paper: RQ1 main (offloading; cooling as a condition), RQ2 supporting, RQ3 only if time allows |
 
 ---
 
@@ -216,9 +216,12 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 - [x] Project repo created (scripts, setup runbook, results pushed after every session); see `README.md` and `docs/setup.md`.
 - [ ] Freeze platform for the study: stop EEPROM auto-updates (`sudo apt-mark hold rpi-eeprom`) and avoid `apt upgrade` during the measurement phase (kernel/firmware changes would confound results).
 - [ ] Find where hardware encode spends its ~12 ms CPU per frame (`perf record` on `hw_enc`); if it is frame copying, that is direct early evidence for H1.
-- [x] Cooling decision: passive (heatsinks + PC intake airflow). Throttling is allowed, logged per run (temperature, ARM clock, `get_throttled`) and reported; HW and SW runs interleaved so both see the same thermal history. Discussed as a deployment-realistic condition in the paper.
+- [x] Cooling decision (superseded 2026-11-07 by fan always on): passive (heatsinks + PC intake airflow). Throttling is allowed, logged per run (temperature, ARM clock, `get_throttled`) and reported; HW and SW runs interleaved so both see the same thermal history. Discussed as a deployment-realistic condition in the paper.
 - [ ] Fix the CPU frequency (`userspace` governor at a set step, or `performance`) for all measurement runs; CPU-seconds are not comparable across runs when `ondemand` changes the clock.
-- [ ] Re-run exp 02 week-one (30 fps) and equal-work (15 fps) runs on the verified supply, case off: reference dataset; check each with `analysis/clock_check.py` (expect 'none').
+- [x] Reference runs on the verified supply (2026-11-06/07): 30 fps clean; 15 fps clean for CPU, temperature invalid (airflow changed).
+- [ ] **Reference runs with fan on** (decision 2026-11-07): exp 02 at 30 fps and at 15 fps (equal work), PC idle, board position unchanged; check each with `clock_check.py`.
+- [ ] Cooling comparison: the clean passive 30 fps run (`20261106T233239`) serves as the **no-fan** condition against the fan-on reference; blower comparison still later.
+- [ ] Note in each run's record: board position and whether the PC was in use.
 - [ ] Cooling bracket: repeat exp 01 (5 min) with case off, then with an electric air blower at fixed position/speed; compare with the case-on run (85.7 °C, throttled to 600 MHz).
 - [ ] Confirm with instructor that a Linux-based soft real-time project fits the scope.
 - [ ] Confirm whether STM32F4 is acceptable (as a power logger now, or as a controller in a later extension).
@@ -257,11 +260,16 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | 2026-11-06 | **Exp 02 equal-work run** (`20261106T222312`) | **15 fps**, N = 10 (1.5 detections/s both modes), 180 s × (sw hw hw sw) | **sw: 2.21–2.24 cores, 147–149 ms CPU/frame, utilization 0.88–0.90, 42–44 → 58 °C. hw: 1.07 cores, 71 ms CPU/frame, utilization 0.41–0.42, 44–46 → 49–50 °C.** Miss ratio sw 58–62%, hw 21% | At identical work, **hw uses 52% less CPU and ends ~9 °C cooler** after 3 min: the thermal-headroom form of H1b. Repeatable within ~2%. Energy not yet measured (needs power meter) |
 | 2026-11-06 | **Configuration change** | — | Power: PC USB port → USB-C brick. Case removed | All exp 00–02 runs so far: case on, PC USB power. Runs from here on are not directly comparable with them. Pending: verify brick (stress + `get_throttled`), run `clock_check.py` on the two long exp 02 runs |
 | 2026-11-06 | `clock_check.py` on both long exp 02 runs | per-run windows, bits 0–3 | Under-voltage + throttling active in ~6 samples per run (≈3 s at 600 MHz of 180 s, ~2%), 12 in one equal-work sw run, none in one week-one sw run. Median clock 1800 MHz in every run. Both modes affected about equally | Throttling was supply-caused (PC USB) and brief; too small and too even across modes to explain the 45–52% differences, so conclusions stand. Runs classed **preliminary**. Reference dataset: repeat both on the new supply with the case off |
+| 2026-11-06 | **Reference run, 30 fps** (`20261106T233239`) | USB-C brick, case off, N = 10, 180 s × (sw hw hw sw) | sw 17.6 fps, utilization 1.68, 136.7–137.6 ms CPU/frame; hw 30.0 fps, utilization 0.88–0.89, 75.2–76.7 ms CPU/frame. Clock 1800 MHz throughout, no throttle bits, sticky flags 0x0. 56–58 → 68–72 °C | **Reference dataset.** Matches the preliminary run within 1–2%: the earlier under-voltage effect was negligible. Supply verified adequate |
+| 2026-11-07 | **Reference run, 15 fps equal work** (`20261106T234758`) | as above, FPS = 15 | sw 2.17–2.21 cores, 144–148 ms CPU/frame, utilization 0.86–0.88; hw 1.04–1.05 cores, 70 ms CPU/frame, utilization 0.40–0.41. No throttle bits. hw clock min 800 MHz (governor, light load). **Temperatures inconsistent:** run 1 sw ended 62 °C but run 2 started 42 °C; hw runs cooled while running (42 → 39 °C); run 4 started 34.6 °C | **CPU result replicated: hw −52% CPU at equal work.** Temperature comparison **not valid** for this run: cooling changed during the experiment. **Cause (2026-11-07): the Pi's own fan started working again partway through** (PC intake airflow may also vary with PC load). The ~9 °C difference from the preliminary run remains unconfirmed. Thermal comparisons need stable surroundings; ambient/airflow to be recorded |
 
 ---
 
 ## Changelog
 
+- **v0.22** (2026-11-07): Title, focus and RQ1 reworded for fan-on reference runs (cooling now a condition, not the premise). Cooling decision changed: fan always on for reference runs; passive 30 fps run kept as the no-fan condition; reference re-runs (30 and 15 fps) with fan on as open items.
+- **v0.21** (2026-11-07): 15 fps temperature confound attributed to the Pi fan restarting; fan unplugged for reference runs; fan-on condition added as later item.
+- **v0.20** (2026-11-07): Reference runs (30 fps and 15 fps) logged: CPU results replicated and clean; 15 fps temperatures invalid (airflow changed); open items for stable-surroundings repeat.
 - **v0.19** (2026-11-06): Clock check of long runs (~2% under-voltage throttling, both modes); runs marked preliminary; re-run open item.
 - **v0.18** (2026-11-06): Power source and enclosure recorded (PC USB → USB-C brick; case removed); configuration-change entry; cooling-bracket open item.
 - **v0.17** (2026-11-06): Results log: equal-work run (hw −52% CPU, ~9 °C cooler); under-voltage flag found; `analysis/clock_check.py`.
