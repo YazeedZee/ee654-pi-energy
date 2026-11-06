@@ -1,4 +1,4 @@
-# EE654 Pi Energy Study (v0.3)
+# EE654 Pi Energy Study (v0.4)
 
 **Energy vs. deadlines in a soft real-time video pipeline on the Raspberry Pi 4.**
 Course project for EE654 Embedded and Real-Time Systems (Fall 2026).
@@ -42,7 +42,8 @@ The research plan (questions, hypotheses, experimental design, platform record) 
 |---|---|---|---|
 | 00 | `experiments/00_codec_check.sh` | Confirm H.264 hardware encode/decode works; first HW vs. SW comparison (no power data) | done 2026-11-06 |
 | 01 | `experiments/01_thermal_soak.sh` | 10 min all-core load: does passive cooling throttle? | done 2026-11-06 (ad-hoc; script added after) |
-| 02 | `experiments/02_week1_offload.sh` | Week-one test: pipeline v1 in sw vs. hw mode, sustained, with clock trace | ready to run |
+| 02 | `experiments/02_week1_offload.sh` | Week-one test: pipeline v1 in sw vs. hw mode, sustained, with clock trace | smoke tests done; both modes overloaded at N = 3 |
+| 03 | `experiments/03_frame_access.py` | Why reading hardware-decoded frames is slow: raw copy vs. conversion | ready to run |
 
 ## Pipeline v1
 
@@ -67,6 +68,7 @@ sudo ./scripts/setup_pi.sh        # installs python3-av, python3-opencv
 
 ## Changelog
 
+- **v0.4** (2026-11-06): Experiment 03 (frame-access diagnostic); runner reports service time and utilization, runs bounded by wall-clock time.
 - **v0.3** (2026-11-06): Pipeline v1, experiment 02 (week-one offload test), experiment 01 script, model/input fetch scripts, plot script; setup installs PyAV and OpenCV.
 - **v0.2** (2026-11-06): Experiment 00 fixes: fps from frames / wall time (ffmpeg reports 0 for runs under 1 s), `gen_only` baseline so encoder CPU can be separated from test-pattern generation, logs the V4L2 device used.
 - **v0.1** (2026-11-05): Initial repo: plan, setup runbook, setup/sysinfo/backup/save scripts, experiment 00.
