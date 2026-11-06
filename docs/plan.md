@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.8)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.10)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -65,7 +65,7 @@ A video pipeline must finish every frame before a deadline (≈33 ms at 30 FPS).
 |---|---|---|
 | Raspberry Pi 4 | Device under test | Check RAM size and board revision (`cat /proc/cpuinfo`) |
 | Heatsinks (CPU, RAM) | Thermal control | Fine, but not enough alone under sustained load |
-| Small fan (from kit) | Thermal control | **Required** for all runs; keep it at a constant speed |
+| Small fan (from kit) | — | Broken; not used. **Decision:** passive cooling (heatsinks, board placed in the PC's intake airflow). Throttling is treated as part of the system under test, measured per run and reported |
 | Wall-plug inline power meter | Coarse power reading | See limitations in 4.2 |
 | UART adapters | Debug console; future STM32 link | Not needed for phase 1 |
 
@@ -148,7 +148,8 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 - Use non-parametric tests (e.g., Mann–Whitney) where distributions are skewed.
 
 ### 6.4 Controls (one per likely reviewer question)
-- [ ] Fan on, constant; temperature and throttle flags logged every run
+- [ ] Temperature, ARM clock and throttle flags logged every run; throttling reported per configuration
+- [ ] Configurations interleaved (not blocked) so thermal history is balanced across conditions
 - [ ] Same input files, same build, same compiler flags across configurations
 - [ ] Warm-up period discarded
 - [ ] HDMI, Wi-Fi, Bluetooth, USB devices in the same state every run (ideally disabled)
@@ -206,6 +207,7 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 - [x] Project repo created (scripts, setup runbook, results pushed after every session); see `README.md` and `docs/setup.md`.
 - [ ] Freeze platform for the study: stop EEPROM auto-updates (`sudo apt-mark hold rpi-eeprom`) and avoid `apt upgrade` during the measurement phase (kernel/firmware changes would confound results).
 - [ ] Find where hardware encode spends its ~12 ms CPU per frame (`perf record` on `hw_enc`); if it is frame copying, that is direct early evidence for H1.
+- [x] Cooling decision: passive (heatsinks + PC intake airflow). Throttling is allowed, logged per run (temperature, ARM clock, `get_throttled`) and reported; HW and SW runs interleaved so both see the same thermal history. Discussed as a deployment-realistic condition in the paper.
 - [ ] Fix the CPU frequency (`userspace` governor at a set step, or `performance`) for all measurement runs; CPU-seconds are not comparable across runs when `ondemand` changes the clock.
 - [ ] Confirm with instructor that a Linux-based soft real-time project fits the scope.
 - [ ] Confirm whether STM32F4 is acceptable (as a power logger now, or as a controller in a later extension).
@@ -233,11 +235,14 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 | 2026-11-05 | Network access | Desktop image re-flashed; direct Ethernet link | SSH works at 10.42.0.41 | Wi-Fi not joining. PC's UFW blocked DHCP on the adapter, so the Pi's Ethernet came up then dropped; fixed with an interface-scoped allow rule |
 | 2026-11-05 | Base setup | full-upgrade → kernel 6.18.60; console boot; ffmpeg 7.1.5 | Done | Ping passed but TCP was blocked until the UFW route rule was added (UFW forwards ICMP by default) |
 | 2026-11-06 | Exp 00 codec check (run 2, `20261106T001525`) | 720p30 synthetic, 300 frames, `ondemand`, no power data | HW codec works (`/dev/video10` dec, `/dev/video11` enc). CPU-ms/frame: sw_enc 50, hw_enc 12 (net of pattern generation), sw_dec 10.8, hw_dec 0.5. Throughput: hw_enc 159 fps, sw_enc 66, hw_dec 184, sw_dec 315. 49–56 °C, no throttling | Run 1 agreed within ~2%. hw_enc still costs ~12 ms CPU/frame (≈ software decode), so not free; cause unknown (frame copies? driver polling? frequency effects under `ondemand`). Not paper data |
+| 2026-11-06 | Exp 01 thermal soak (`data/raw/01_thermal_soak/`) | `stress-ng --cpu 4`, 600 s, `performance`, heatsinks only, **no fan** | Max 85.7 °C; clock fell to 600 MHz; `get_throttled` = `0xe0000` (freq capped, throttled, soft temp limit occurred; **no under-voltage**) | Passive cooling is insufficient: sustained load silently changes the CPU frequency, which is RQ2's independent variable. Active cooling required. Power supply confirmed adequate |
 
 ---
 
 ## Changelog
 
+- **v0.10** (2026-11-06): Cooling decision: passive cooling, throttling measured and reported rather than prevented; controls updated.
+- **v0.9** (2026-11-06): Fan broken; thermal soak shows throttling to 600 MHz at 85.7 °C with heatsinks only; cooling and thermal-protocol open items; controls updated.
 - **v0.8** (2026-11-06): Results log: experiment 00 run 2; open items on hardware-encode CPU cost and fixing the governor for measurements.
 - **v0.7** (2026-11-05): Moved into the project repo as `docs/plan.md`; corrected stale Lite references in §4.3 note and §5; repo open item.
 - **v0.6** (2026-11-05): Kernel 6.18.60 after upgrade; console boot target; HW codec devices; full list of PC-side network changes.
