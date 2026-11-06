@@ -1,0 +1,95 @@
+{
+  "config": {
+    "input": "/home/raspberry/ee654-pi-energy/data/inputs/pedestrian_area_720p30.mp4",
+    "mode": "sw",
+    "duration": 180.0,
+    "fps": 15.0,
+    "detect_every": 10,
+    "conf": 0.5,
+    "bitrate": 4000000,
+    "warmup": 2.0,
+    "free_run": false,
+    "convert": "copy",
+    "model_dir": "/home/raspberry/ee654-pi-energy/pipeline/models",
+    "out_dir": "/home/raspberry/ee654-pi-energy/data/raw/02_week1_offload/20261106T222312/run1_sw",
+    "decoder": "h264",
+    "encoder": "libx264",
+    "width": 1280,
+    "height": 720,
+    "input_codec": "h264",
+    "input_packets": 375
+  },
+  "versions": {
+    "python": "3.13.5",
+    "pyav": "14.2.0",
+    "opencv": "4.10.0",
+    "opencv_threads": 4,
+    "host": "raspberry",
+    "kernel": "6.18.60+rpt-rpi-v8"
+  },
+  "frames": 2701,
+  "frames_in_stats": 2670,
+  "elapsed_s": 180.15848634700023,
+  "achieved_fps": 14.992355091159288,
+  "deadline_ms": 66.66666666666667,
+  "miss_ratio": 0.6209737827715356,
+  "latency_ms": {
+    "p50": 95.0105,
+    "p99": 1791.1238599999997,
+    "max": 1915.737
+  },
+  "service_ms": {
+    "mean": 59.6833543071161,
+    "p50": 47.3945,
+    "p99": 168.9357,
+    "max": 408.685
+  },
+  "utilization": 0.8952503146067414,
+  "overloaded": false,
+  "stages": {
+    "decode": {
+      "mean_ms": 13.804374531835203,
+      "p50_ms": 12.5015,
+      "p99_ms": 31.594559999999973,
+      "max_ms": 84.722
+    },
+    "to_bgr": {
+      "mean_ms": 2.9665475655430713,
+      "p50_ms": 2.92,
+      "p99_ms": 4.470479999999999,
+      "max_ms": 5.492
+    },
+    "detect": {
+      "mean_ms": 113.18330711610487,
+      "p50_ms": 107.759,
+      "p99_ms": 256.36284,
+      "max_ms": 296.025
+    },
+    "overlay": {
+      "mean_ms": 0.5781805243445693,
+      "p50_ms": 0.561,
+      "p99_ms": 1.1544199999999956,
+      "max_ms": 1.519
+    },
+    "to_yuv": {
+      "mean_ms": 4.984069288389513,
+      "p50_ms": 4.856,
+      "p99_ms": 10.554889999999999,
+      "max_ms": 13.569
+    },
+    "encode": {
+      "mean_ms": 26.026428464419475,
+      "p50_ms": 25.046,
+      "p99_ms": 65.26223999999999,
+      "max_ms": 81.426
+    }
+  },
+  "cpu_s": 403.444927,
+  "cpu_cores_used": 2.2393889690154896,
+  "cpu_ms_per_frame": 149.36872528693075,
+  "temp_c": {
+    "start": 41.868,
+    "end": 58.426,
+    "max": 58.426
+  }
+}
