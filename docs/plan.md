@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.12)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.13)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -244,11 +244,13 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | 2026-11-05 | Base setup | full-upgrade → kernel 6.18.60; console boot; ffmpeg 7.1.5 | Done | Ping passed but TCP was blocked until the UFW route rule was added (UFW forwards ICMP by default) |
 | 2026-11-06 | Exp 00 codec check (run 2, `20261106T001525`) | 720p30 synthetic, 300 frames, `ondemand`, no power data | HW codec works (`/dev/video10` dec, `/dev/video11` enc). CPU-ms/frame: sw_enc 50, hw_enc 12 (net of pattern generation), sw_dec 10.8, hw_dec 0.5. Throughput: hw_enc 159 fps, sw_enc 66, hw_dec 184, sw_dec 315. 49–56 °C, no throttling | Run 1 agreed within ~2%. hw_enc still costs ~12 ms CPU/frame (≈ software decode), so not free; cause unknown (frame copies? driver polling? frequency effects under `ondemand`). Not paper data |
 | 2026-11-06 | Exp 01 thermal soak (`data/raw/01_thermal_soak/`) | `stress-ng --cpu 4`, 600 s, `performance`, heatsinks only, **no fan** | Max 85.7 °C; clock fell to 600 MHz; `get_throttled` = `0xe0000` (freq capped, throttled, soft temp limit occurred; **no under-voltage**) | Under passive cooling, sustained full load makes the firmware lower the clock on its own. Led to the passive-cooling decision (§10) and the RQ1 thermal hypothesis (H1b). Power supply confirmed adequate |
+| 2026-11-06 | Exp 02 smoke test (`20261106T204009`) | pipeline v1, pedestrian_area 720p30, N = 3, 20 s × (sw hw hw sw) | **Both modes overloaded:** sw 11.1 fps, hw 5.0 fps (target 30). Detection ≈ 115 ms per call. **hw slower and uses more CPU per frame** (302 vs 239 ms) although its decode (0.4 ms) and encode (1.7 ms) stages are tiny: ~150 ms per frame unaccounted for in the printed stages | Suspect: CPU access to hardware-codec buffers (colour conversion of decoded frames), same family as exp 00's 12 ms hw-encode cost → early H1 evidence, to confirm. Runner fixed: runs bounded by wall-clock time; service time and utilization reported, since latency is meaningless when overloaded |
 
 ---
 
 ## Changelog
 
+- **v0.13** (2026-11-06): Results log: exp 02 smoke test (both modes overloaded; hw unexpectedly slower).
 - **v0.12** (2026-11-06): Detector, inputs and pipeline v1 recorded; detector load sweep (N) added as a factor.
 - **v0.11** (2026-11-06): Research focus changed: RQ1 (offloading under passive cooling) is now the main question, testing the fixed-execution-time assumption; RQ2 supporting (short runs); RQ3 optional. Rewrote §2, §6.5, §7; updated title, system model, factors, metrics, milestones.
 - **v0.10** (2026-11-06): Cooling decision: passive cooling, throttling measured and reported rather than prevented; controls updated.

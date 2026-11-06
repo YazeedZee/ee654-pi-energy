@@ -38,12 +38,12 @@ def main(run_dir):
         deadline = s["deadline_ms"]
 
         ax = axes[0, col]
-        ax.plot(t, f["latency_ms"], lw=0.5, color=MODE_COLOR.get(mode, "k"))
-        ax.plot(t, f["latency_ms"].rolling(30, min_periods=1).median(), lw=1.5, color="k", label="1 s median")
-        ax.axhline(deadline, ls="--", color="grey", lw=1, label=f"deadline {deadline:.1f} ms")
-        ax.set_title(f"{rd.name}  miss {100 * s['miss_ratio']:.1f}%")
+        ax.plot(t, f["service_ms"], lw=0.5, color=MODE_COLOR.get(mode, "k"))
+        ax.plot(t, f["service_ms"].rolling(30, min_periods=1).median(), lw=1.5, color="k", label="rolling median (30 frames)")
+        ax.axhline(deadline, ls="--", color="grey", lw=1, label=f"frame period {deadline:.1f} ms")
+        ax.set_title(f"{rd.name}  util {s['utilization']:.2f}  miss {100 * s['miss_ratio']:.1f}%", fontsize=9)
         if col == 0:
-            ax.set_ylabel("frame latency (ms)")
+            ax.set_ylabel("service time per frame (ms)")
             ax.legend(fontsize=7, loc="upper left")
 
         ax = axes[1, col]

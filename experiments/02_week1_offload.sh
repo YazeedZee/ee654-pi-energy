@@ -50,16 +50,20 @@ echo
 python3 - "$OUT" <<'EOF'
 import json, sys, pathlib
 out = pathlib.Path(sys.argv[1])
-print(f"{'run':<9}{'fps':>6}{'miss%':>7}{'p50ms':>7}{'p99ms':>7}{'cores':>7}{'cpu ms/f':>9}{'decode':>8}{'detect':>8}{'encode':>8}{'tempC':>12}")
+cols = ["decode", "to_bgr", "detect", "overlay", "to_yuv", "encode"]
+print(f"{'run':<9}{'fps':>6}{'util':>6}{'miss%':>7}{'svc50':>7}{'svc99':>7}{'cores':>6}{'cpu/f':>7}" + "".join(f"{c:>8}" for c in cols) + f"{'tempC':>13}")
 for d in sorted(p for p in out.iterdir() if p.is_dir()):
     f = d / "summary.json"
     if not f.exists():
         print(f"{d.name:<9} (no summary)"); continue
     s = json.load(open(f)); st = s["stages"]
-    print(f"{d.name:<9}{s['achieved_fps']:>6.1f}{100*s['miss_ratio']:>7.1f}{s['latency_ms']['p50']:>7.1f}{s['latency_ms']['p99']:>7.1f}"
-          f"{s['cpu_cores_used']:>7.2f}{s['cpu_ms_per_frame']:>9.1f}{st['decode']['mean_ms']:>8.1f}{st['detect']['mean_ms']:>8.1f}"
-          f"{st['encode']['mean_ms']:>8.1f}{str(s['temp_c']['start'])+'->'+str(s['temp_c']['end']):>12}")
+    sv = s["service_ms"]
+    print(f"{d.name:<9}{s['achieved_fps']:>6.1f}{s['utilization']:>6.2f}{100*s['miss_ratio']:>7.1f}{sv['p50']:>7.1f}{sv['p99']:>7.1f}"
+          f"{s['cpu_cores_used']:>6.2f}{s['cpu_ms_per_frame']:>7.1f}" + "".join(f"{(st[c]['mean_ms'] or 0):>8.1f}" for c in cols)
+          + f"{str(round(s['temp_c']['start'] or 0, 1)) + '->' + str(round(s['temp_c']['end'] or 0, 1)):>13}")
 EOF
 echo
+echo "util = mean service time / frame period (>1 = overloaded: cannot keep up; latency then grows without bound)."
+echo "svc50/svc99 = per-frame service time (ms, all stages, no waiting). cpu/f = CPU ms per frame, all threads."
 echo "Stage columns are mean ms per frame (detect: per detection). Saved to $OUT"
 echo "Plot on the PC: python3 analysis/plot_02.py $OUT"

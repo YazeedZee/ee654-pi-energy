@@ -6,6 +6,11 @@ One process, stages run in sequence per frame. Frames are released at a fixed ra
 its release. A late frame does not cause drops: the next frame starts immediately,
 so lateness accumulates and shows up as deadline misses.
 
+The run stops after --duration seconds of wall-clock time, however many frames that is.
+Per-frame service time (sum of all stages, excluding waiting) is logged separately from
+latency: when the pipeline is overloaded (utilization = mean service / period > 1),
+latency grows without bound and only service time and throughput are meaningful.
+
 Modes:
   sw  software H.264 decode (ffmpeg 'h264') and encode (libx264, veryfast, zerolatency)
   hw  hardware codec for both (h264_v4l2m2m decode and encode)
@@ -56,7 +61,7 @@ def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--input", required=True, help="H.264 video file (mp4)")
     p.add_argument("--mode", choices=["sw", "hw"], required=True)
-    p.add_argument("--duration", type=float, default=180, help="run length in seconds (input loops)")
+    p.add_argument("--duration", type=float, default=180, help="run length in wall-clock seconds (input loops)")
     p.add_argument("--fps", type=float, default=30, help="frame release rate; deadline = 1/fps")
     p.add_argument("--detect-every", type=int, default=1, help="run the detector every N frames")
     p.add_argument("--conf", type=float, default=0.5, help="detection confidence threshold")
@@ -148,14 +153,15 @@ def main():
     src = frame_source(dec, packets)
 
     period = 1.0 / a.fps
-    n_frames = int(a.duration * a.fps)
     boxes = []
     rows = []
     ru0 = resource.getrusage(resource.RUSAGE_SELF)
     t_start = time.perf_counter()
     wall_start = time.time()
 
-    for i in range(n_frames):
+    i = -1
+    while time.perf_counter() - t_start < a.duration:
+        i += 1
         release = t_start + i * period
         now = time.perf_counter()
         if not a.free_run and now < release:
@@ -183,18 +189,19 @@ def main():
 
         latency = t6 - release
         rows.append([i, round(wall_start + (release - t_start), 6), round(latency * 1e3, 3),
-                     int(latency > period),
+                     int(latency > period), round((t6 - t0) * 1e3, 3),
                      round((t1 - t0) * 1e3, 3), round((t2 - t1) * 1e3, 3), round((t3 - t2) * 1e3, 3),
                      round((t4 - t3) * 1e3, 3), round((t5 - t4) * 1e3, 3), round((t6 - t5) * 1e3, 3),
                      int(ran_detect), sum(1 for b in boxes if b[0] == PERSON), enc_bytes,
                      read_temp(), read_int(FREQ_PATH)])
 
     t_end = time.perf_counter()
+    n_frames = len(rows)
     ru1 = resource.getrusage(resource.RUSAGE_SELF)
     for p in enc.encode(None):
         pass
 
-    cols = ["frame", "release_wall_s", "latency_ms", "miss", "decode_ms", "to_bgr_ms", "detect_ms",
+    cols = ["frame", "release_wall_s", "latency_ms", "miss", "service_ms", "decode_ms", "to_bgr_ms", "detect_ms",
             "overlay_ms", "to_yuv_ms", "encode_ms", "detected", "persons", "enc_bytes",
             "temp_c", "scaling_cur_freq_khz"]
     with open(out / "frames.csv", "w", newline="") as f:
@@ -202,15 +209,16 @@ def main():
         wr.writerow(cols)
         wr.writerows(rows)
 
-    arr = np.array([r[2:12] for r in rows], dtype=float)
-    keep = arr[int(a.warmup * a.fps):] if not a.free_run else arr
-    lat, miss = keep[:, 0], keep[:, 1]
+    arr = np.array([r[2:13] for r in rows], dtype=float)
+    warm = int(np.searchsorted(np.array([r[1] for r in rows]) - wall_start, a.warmup))
+    keep = arr[warm:] if len(arr) > warm else arr
+    lat, miss, svc = keep[:, 0], keep[:, 1], keep[:, 2]
     stage_names = ["decode", "to_bgr", "detect", "overlay", "to_yuv", "encode"]
     stages = {}
     for k, name in enumerate(stage_names):
-        col = keep[:, 2 + k]
+        col = keep[:, 3 + k]
         if name == "detect":
-            col = col[keep[:, 8] == 1]
+            col = col[keep[:, 9] == 1]
         stages[name] = {"mean_ms": float(col.mean()) if len(col) else None,
                         "p50_ms": pct(col, 50), "p99_ms": pct(col, 99), "max_ms": float(col.max()) if len(col) else None}
     elapsed = t_end - t_start
@@ -227,17 +235,22 @@ def main():
         "deadline_ms": period * 1e3,
         "miss_ratio": float(miss.mean()) if len(miss) else None,
         "latency_ms": {"p50": pct(lat, 50), "p99": pct(lat, 99), "max": float(lat.max()) if len(lat) else None},
+        "service_ms": {"mean": float(svc.mean()) if len(svc) else None, "p50": pct(svc, 50),
+                       "p99": pct(svc, 99), "max": float(svc.max()) if len(svc) else None},
+        "utilization": float(svc.mean() / (period * 1e3)) if len(svc) else None,
+        "overloaded": bool(len(svc) and svc.mean() > period * 1e3),
         "stages": stages,
         "cpu_s": cpu_s,
         "cpu_cores_used": cpu_s / elapsed,
         "cpu_ms_per_frame": cpu_s / n_frames * 1e3,
-        "temp_c": {"start": rows[0][13], "end": rows[-1][13],
-                   "max": max((r[13] for r in rows if r[13] is not None), default=None)},
+        "temp_c": {"start": rows[0][14], "end": rows[-1][14],
+                   "max": max((r[14] for r in rows if r[14] is not None), default=None)},
     }
     with open(out / "summary.json", "w") as f:
         json.dump(summary, f, indent=2)
-    print(f"{a.mode}: {summary['achieved_fps']:.1f} fps, miss {100 * (summary['miss_ratio'] or 0):.1f}%, "
-          f"latency p50 {summary['latency_ms']['p50']:.1f} / p99 {summary['latency_ms']['p99']:.1f} ms, "
+    print(f"{a.mode}: {summary['achieved_fps']:.1f} fps, utilization {summary['utilization']:.2f}"
+          f"{' (OVERLOADED)' if summary['overloaded'] else ''}, miss {100 * (summary['miss_ratio'] or 0):.1f}%, "
+          f"service p50 {summary['service_ms']['p50']:.1f} / p99 {summary['service_ms']['p99']:.1f} ms, "
           f"{summary['cpu_cores_used']:.2f} cores, temp {summary['temp_c']['start']}->{summary['temp_c']['end']} C")
 
 
