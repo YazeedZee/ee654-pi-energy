@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.16)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.18)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -103,6 +103,8 @@ Keep this table current; it becomes the paper's setup section.
 | HW codec devices | V4L2 M2M nodes `/dev/video10–23, 31`; ffmpeg lists `h264_v4l2m2m` encoder and decoder. ffmpeg also lists wrappers the Pi 4 has no hardware for (e.g. HEVC/VP8 encode), so a functional test is required | `ls /dev/video*`; `ffmpeg -encoders \| grep v4l2m2m` |
 | Core voltage per frequency | *TBD* | set each frequency via `userspace` governor, then `vcgencmd measure_volts core` |
 | Storage | microSD, *model/size TBD* | — |
+| Power supply | Until 2026-11-06 ~23:00: **PC USB port** (likely cause of the under-voltage flag). From 2026-11-06 23:18: USB-C fast-charge brick and high-power cable; adequacy to be verified (`get_throttled` = 0x0 after a stress run) | `vcgencmd get_throttled` |
+| Enclosure | Case on until 2026-11-06 ~23:00; **case removed** from then on (heatsinks, open board) | — |
 | Management link | Direct Ethernet: PC USB-C adapter (`enp113s0u1c2`), NetworkManager "shared" mode, PC `10.42.0.1`, Pi `10.42.0.41`. PC firewall rules: `ufw allow in on enp113s0u1c2` and `ufw route allow in on enp113s0u1c2 out on enp6s0` (undo: `ufw delete allow in on enp113s0u1c2`; `ufw route delete allow in on enp113s0u1c2 out on enp6s0`). Docker `DOCKER-USER` rules: *record if added*. Pi apt forced to IPv4 (`/etc/apt/apt.conf.d/99force-ipv4`) | `nmcli connection show pi-link` |
 
 **Note:** the full desktop image is used, booted to console (`multi-user.target`) with non-essential services disabled; Lite was tried and never joined the network. Idle load is to be measured and reported.
@@ -216,6 +218,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 - [ ] Find where hardware encode spends its ~12 ms CPU per frame (`perf record` on `hw_enc`); if it is frame copying, that is direct early evidence for H1.
 - [x] Cooling decision: passive (heatsinks + PC intake airflow). Throttling is allowed, logged per run (temperature, ARM clock, `get_throttled`) and reported; HW and SW runs interleaved so both see the same thermal history. Discussed as a deployment-realistic condition in the paper.
 - [ ] Fix the CPU frequency (`userspace` governor at a set step, or `performance`) for all measurement runs; CPU-seconds are not comparable across runs when `ondemand` changes the clock.
+- [ ] Cooling bracket: repeat exp 01 (5 min) with case off, then with an electric air blower at fixed position/speed; compare with the case-on run (85.7 °C, throttled to 600 MHz).
 - [ ] Confirm with instructor that a Linux-based soft real-time project fits the scope.
 - [ ] Confirm whether STM32F4 is acceptable (as a power logger now, or as a controller in a later extension).
 - [ ] Decide the power-measurement upgrade (USB-C logger vs. INA226 + MCU).
@@ -249,11 +252,16 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | 2026-11-06 | Exp 03 frame access (`20261106T215616`) | 720p, 150 frames, medians | Raw copy of decoded planes: sw 0.93 ms (1483 MB/s), **hw 2.33 ms (595 MB/s)**. Copy then OpenCV convert: hw 2.33 + 2.03 ms. **PyAV direct conversion of hw frames: 138 ms** (sw 3.9 ms) | Hardware decoder buffers are ~2.5× slower for the CPU to read (small, real data-movement cost: H1). The 138 ms is the conversion's access pattern on that memory, not the memory alone: copy-then-convert is ~30× faster. Pipeline now uses copy-then-convert for both modes (`--convert copy`, default); direct path kept as an option |
 | 2026-11-06 | Exp 02 smoke test 3 (`20261106T215838`) | copy-then-convert, **N = 10**, 20 s × (sw hw hw sw) | **hw ≈ 30 fps, utilization 0.87–0.97; sw 17.5 fps, utilization 1.66.** CPU per frame hw 75–83 ms vs sw 136 ms. hw to_bgr 10 ms in the pipeline (4.4 ms in isolation, exp 03). Miss ratio hw 72–93% despite utilization < 1. 41–55 °C, short runs | First configuration where hw is feasible and sw is not; the conversion fix reversed the hw/sw ordering. Thin hw margin: a clock drop could push it past 1 (test in sustained run). High miss ratio at utilization < 1 = queueing after each ~125 ms inline-detection frame; utilization and throughput are the reliable metrics for pipeline v1; a meaningful miss ratio needs detection decoupled (pipeline v2) |
 | 2026-11-06 | **Exp 02 week-one run** (`20261106T220413`) | N = 10, 30 fps, 180 s × (sw hw hw sw), 60 s gaps | **hw 30.0 fps, utilization 0.88–0.89; sw 17.6–17.8 fps, utilization 1.66–1.69.** CPU per frame hw 76 ms vs sw 136–138 ms (−45%). Cores used hw 2.28 vs sw 2.42. Temperature 41–47 → 57–60 °C, still rising at the end; no throttling expected at these temperatures (check clock.csv) | **H1a supported** (hw feasible, sw not; repeatable to ±2%). **H1b not triggered** in 3 min. Key observation: at equal *frame rate* hw does 70% more work, so total CPU (and heat) is about the same as sw; offload savings went into throughput, not cooling. Next: equal-work comparison (both at 15 fps, which sw sustains) and a longer run to see where temperature settles |
+| 2026-11-06 | Clock check of week-one run | `clock.csv` of `20261106T220413` | Sticky throttle flags **`0x50000`**: under-voltage has occurred (bit 16) and throttling has occurred (bit 18) since boot, with max temperature only 60.8 °C. Min clock 600 MHz, but the log includes idle gaps where the governor lowers the clock on purpose | **Under-voltage seen for the first time** (exp 01 showed none); throttling here was voltage-caused, not thermal. Timing unknown from sticky bits: per-run check with `analysis/clock_check.py` (bits 0–3, 'active now') pending. Corrects the earlier 'power supply adequate' note |
+| 2026-11-06 | **Exp 02 equal-work run** (`20261106T222312`) | **15 fps**, N = 10 (1.5 detections/s both modes), 180 s × (sw hw hw sw) | **sw: 2.21–2.24 cores, 147–149 ms CPU/frame, utilization 0.88–0.90, 42–44 → 58 °C. hw: 1.07 cores, 71 ms CPU/frame, utilization 0.41–0.42, 44–46 → 49–50 °C.** Miss ratio sw 58–62%, hw 21% | At identical work, **hw uses 52% less CPU and ends ~9 °C cooler** after 3 min: the thermal-headroom form of H1b. Repeatable within ~2%. Energy not yet measured (needs power meter) |
+| 2026-11-06 | **Configuration change** | — | Power: PC USB port → USB-C brick. Case removed | All exp 00–02 runs so far: case on, PC USB power. Runs from here on are not directly comparable with them. Pending: verify brick (stress + `get_throttled`), run `clock_check.py` on the two long exp 02 runs |
 
 ---
 
 ## Changelog
 
+- **v0.18** (2026-11-06): Power source and enclosure recorded (PC USB → USB-C brick; case removed); configuration-change entry; cooling-bracket open item.
+- **v0.17** (2026-11-06): Results log: equal-work run (hw −52% CPU, ~9 °C cooler); under-voltage flag found; `analysis/clock_check.py`.
 - **v0.16** (2026-11-06): Results log: week-one run (H1a supported, H1b not triggered in 3 min; equal-work comparison next). Exp 02 script takes FPS.
 - **v0.15** (2026-11-06): Results log: exp 02 smoke test 3 (N = 10: hw feasible, sw overloaded).
 - **v0.14** (2026-11-06): Results log: exp 02 smoke test 2 and exp 03 (hardware frame access); pipeline conversion fix.
