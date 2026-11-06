@@ -1,0 +1,26 @@
+{
+  "input": "/home/raspberry/ee654-pi-energy/data/inputs/pedestrian_area_720p30.mp4",
+  "frames": 150,
+  "pyav": "14.2.0",
+  "opencv": "4.10.0",
+  "modes": {
+    "sw": {
+      "decoder": "h264",
+      "pix_fmt": "yuv420p",
+      "bytes_per_frame": 1382400,
+      "raw_copy_ms": 0.932,
+      "cvt_copy_ms": 1.9255,
+      "to_ndarray_ms": 3.945,
+      "raw_copy_MB_per_s": 1483.2618025751071
+    },
+    "hw": {
+      "decoder": "h264_v4l2m2m",
+      "pix_fmt": "yuv420p",
+      "bytes_per_frame": 1382400,
+      "raw_copy_ms": 2.325,
+      "cvt_copy_ms": 2.0324999999999998,
+      "to_ndarray_ms": 137.973,
+      "raw_copy_MB_per_s": 594.5806451612902
+    }
+  }
+}
