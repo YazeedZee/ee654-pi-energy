@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.18)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.19)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -218,6 +218,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 - [ ] Find where hardware encode spends its ~12 ms CPU per frame (`perf record` on `hw_enc`); if it is frame copying, that is direct early evidence for H1.
 - [x] Cooling decision: passive (heatsinks + PC intake airflow). Throttling is allowed, logged per run (temperature, ARM clock, `get_throttled`) and reported; HW and SW runs interleaved so both see the same thermal history. Discussed as a deployment-realistic condition in the paper.
 - [ ] Fix the CPU frequency (`userspace` governor at a set step, or `performance`) for all measurement runs; CPU-seconds are not comparable across runs when `ondemand` changes the clock.
+- [ ] Re-run exp 02 week-one (30 fps) and equal-work (15 fps) runs on the verified supply, case off: reference dataset; check each with `analysis/clock_check.py` (expect 'none').
 - [ ] Cooling bracket: repeat exp 01 (5 min) with case off, then with an electric air blower at fixed position/speed; compare with the case-on run (85.7 °C, throttled to 600 MHz).
 - [ ] Confirm with instructor that a Linux-based soft real-time project fits the scope.
 - [ ] Confirm whether STM32F4 is acceptable (as a power logger now, or as a controller in a later extension).
@@ -255,11 +256,13 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | 2026-11-06 | Clock check of week-one run | `clock.csv` of `20261106T220413` | Sticky throttle flags **`0x50000`**: under-voltage has occurred (bit 16) and throttling has occurred (bit 18) since boot, with max temperature only 60.8 °C. Min clock 600 MHz, but the log includes idle gaps where the governor lowers the clock on purpose | **Under-voltage seen for the first time** (exp 01 showed none); throttling here was voltage-caused, not thermal. Timing unknown from sticky bits: per-run check with `analysis/clock_check.py` (bits 0–3, 'active now') pending. Corrects the earlier 'power supply adequate' note |
 | 2026-11-06 | **Exp 02 equal-work run** (`20261106T222312`) | **15 fps**, N = 10 (1.5 detections/s both modes), 180 s × (sw hw hw sw) | **sw: 2.21–2.24 cores, 147–149 ms CPU/frame, utilization 0.88–0.90, 42–44 → 58 °C. hw: 1.07 cores, 71 ms CPU/frame, utilization 0.41–0.42, 44–46 → 49–50 °C.** Miss ratio sw 58–62%, hw 21% | At identical work, **hw uses 52% less CPU and ends ~9 °C cooler** after 3 min: the thermal-headroom form of H1b. Repeatable within ~2%. Energy not yet measured (needs power meter) |
 | 2026-11-06 | **Configuration change** | — | Power: PC USB port → USB-C brick. Case removed | All exp 00–02 runs so far: case on, PC USB power. Runs from here on are not directly comparable with them. Pending: verify brick (stress + `get_throttled`), run `clock_check.py` on the two long exp 02 runs |
+| 2026-11-06 | `clock_check.py` on both long exp 02 runs | per-run windows, bits 0–3 | Under-voltage + throttling active in ~6 samples per run (≈3 s at 600 MHz of 180 s, ~2%), 12 in one equal-work sw run, none in one week-one sw run. Median clock 1800 MHz in every run. Both modes affected about equally | Throttling was supply-caused (PC USB) and brief; too small and too even across modes to explain the 45–52% differences, so conclusions stand. Runs classed **preliminary**. Reference dataset: repeat both on the new supply with the case off |
 
 ---
 
 ## Changelog
 
+- **v0.19** (2026-11-06): Clock check of long runs (~2% under-voltage throttling, both modes); runs marked preliminary; re-run open item.
 - **v0.18** (2026-11-06): Power source and enclosure recorded (PC USB → USB-C brick; case removed); configuration-change entry; cooling-bracket open item.
 - **v0.17** (2026-11-06): Results log: equal-work run (hw −52% CPU, ~9 °C cooler); under-voltage flag found; `analysis/clock_check.py`.
 - **v0.16** (2026-11-06): Results log: week-one run (H1a supported, H1b not triggered in 3 min; equal-work comparison next). Exp 02 script takes FPS.
