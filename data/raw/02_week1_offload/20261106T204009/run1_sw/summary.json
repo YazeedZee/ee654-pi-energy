@@ -1,0 +1,86 @@
+{
+  "config": {
+    "input": "/home/raspberry/ee654-pi-energy/data/inputs/pedestrian_area_720p30.mp4",
+    "mode": "sw",
+    "duration": 20.0,
+    "fps": 30,
+    "detect_every": 3,
+    "conf": 0.5,
+    "bitrate": 4000000,
+    "warmup": 2.0,
+    "free_run": false,
+    "model_dir": "/home/raspberry/ee654-pi-energy/pipeline/models",
+    "out_dir": "/home/raspberry/ee654-pi-energy/data/raw/02_week1_offload/20261106T204009/run1_sw",
+    "decoder": "h264",
+    "encoder": "libx264",
+    "width": 1280,
+    "height": 720,
+    "input_codec": "h264",
+    "input_packets": 375
+  },
+  "versions": {
+    "python": "3.13.5",
+    "pyav": "14.2.0",
+    "opencv": "4.10.0",
+    "opencv_threads": 4,
+    "host": "raspberry",
+    "kernel": "6.18.60+rpt-rpi-v8"
+  },
+  "frames": 600,
+  "frames_in_stats": 540,
+  "elapsed_s": 53.93332450601156,
+  "achieved_fps": 11.124847309071821,
+  "deadline_ms": 33.333333333333336,
+  "miss_ratio": 1.0,
+  "latency_ms": {
+    "p50": 19837.515,
+    "p99": 33734.734690000005,
+    "max": 33965.999
+  },
+  "stages": {
+    "decode": {
+      "mean_ms": 14.967181481481482,
+      "p50_ms": 13.432500000000001,
+      "p99_ms": 31.496940000000013,
+      "max_ms": 47.998
+    },
+    "to_bgr": {
+      "mean_ms": 4.3672259259259265,
+      "p50_ms": 4.027,
+      "p99_ms": 11.34976,
+      "max_ms": 11.448
+    },
+    "detect": {
+      "mean_ms": 114.72118888888888,
+      "p50_ms": 109.051,
+      "p99_ms": 258.18688000000003,
+      "max_ms": 258.532
+    },
+    "overlay": {
+      "mean_ms": 0.6190851851851853,
+      "p50_ms": 0.5965,
+      "p99_ms": 1.4450800000000033,
+      "max_ms": 1.76
+    },
+    "to_yuv": {
+      "mean_ms": 5.020325925925926,
+      "p50_ms": 4.814,
+      "p99_ms": 10.76271,
+      "max_ms": 11.911
+    },
+    "encode": {
+      "mean_ms": 25.685366666666663,
+      "p50_ms": 24.556,
+      "p99_ms": 57.915850000000006,
+      "max_ms": 81.348
+    }
+  },
+  "cpu_s": 143.68636700000002,
+  "cpu_cores_used": 2.664148155450427,
+  "cpu_ms_per_frame": 239.47727833333337,
+  "temp_c": {
+    "start": 62.809,
+    "end": 72.549,
+    "max": 73.523
+  }
+}
