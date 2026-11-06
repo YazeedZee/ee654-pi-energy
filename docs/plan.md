@@ -1,9 +1,9 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.10)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.11)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
 **Status:** Setup / pre-baseline
-**Working title:** *Is Slowing Down Worth It? Testing Energy-Saving Assumptions for a Soft Real-Time Video Pipeline on the Raspberry Pi 4*
+**Working title:** *Offload or Throttle? Hardware Offloading, Energy and Deadline Predictability in a Passively Cooled Video Pipeline on the Raspberry Pi 4*
 
 ---
 
@@ -11,7 +11,9 @@
 
 A video pipeline must finish every frame before a deadline (≈33 ms at 30 FPS). This project measures **how to meet that deadline with the least energy**, using three controls: *where* each stage runs (CPU, GPU, hardware codec), *how fast* the CPU runs (frequency scaling), and *how* stages are scheduled (Linux schedulers). It compares what scheduling and DVFS theory predicts against what the hardware actually does.
 
-**Contribution type:** mainly a measurement study, plus a small technique (a slack-based frequency controller).
+**Focus (decided 2026-11-06):** hardware offloading leads, under passive cooling where the firmware throttles the CPU; frequency scaling is supporting; scheduler comparison is optional.
+
+**Contribution type:** measurement study testing an assumption of real-time analysis (fixed execution time) on a passively cooled platform.
 
 ---
 
@@ -19,28 +21,28 @@ A video pipeline must finish every frame before a deadline (≈33 ms at 30 FPS).
 
 | ID | Question | Role in paper |
 |---|---|---|
-| **RQ2** | Does lowering the CPU frequency save as much energy as DVFS theory predicts? | **Main question** |
-| RQ1 | Does offloading encode/decode to the hardware codec save energy, and does frame copying cancel the benefit? | Supporting |
-| RQ3 | Which scheduler best protects frame deadlines under background load? | Supporting |
+| **RQ1** | Does offloading video stages to the hardware codec reduce energy **and** keep frame deadlines met under passive cooling, and how much of the hardware–software gap is explained by thermal throttling? | **Main question** |
+| RQ2 | How does per-stage execution time scale with CPU frequency (C(f) ∝ 1/f?), measured in short runs before the chip heats? | Supporting |
+| RQ3 | Which Linux scheduler best protects frame deadlines under background load? | Optional (only if time allows) |
 
-### RQ2: DVFS assumptions (main)
-- **Policies compared:** `performance`, `ondemand`, `schedutil`, race-to-idle, custom slack-based controller.
-- **Hypothesis H2a:** Execution time scales as 1/f for CPU-bound stages (detection) but *not* for memory-bound stages (decode, copies).
-- **Hypothesis H2b:** Because a large share of board power is fixed, race-to-idle matches or beats running slower.
-- **Assumption under test:** classic DVFS models (e.g., Pillai & Shin 2001) assume C(f) ∝ 1/f.
+### RQ1: Offloading under passive cooling (main)
+- **Configurations:** decode and encode on CPU (`libx264`, software decode) vs. hardware codec (`h264_v4l2m2m`); frame transfer by copy vs. zero-copy (dmabuf) if achievable.
+- **Conditions:** short runs (cold chip, before throttling) vs. sustained runs (≥3 min, throttling allowed). Passive cooling by decision (see §4.1).
+- **Hypothesis H1a (direct):** Hardware offload lowers energy per frame even without throttling, but less than its CPU savings suggest, because frame copies and fixed board power remain (exp 00: hardware encode still costs ~12 ms CPU per frame).
+- **Hypothesis H1b (thermal):** In sustained runs, software paths heat the chip until the firmware lowers the clock; their per-frame time grows and deadline misses appear partway through the run. Hardware paths stay below the throttling point, so their timing stays flat.
+- **Assumption under test:** real-time analysis (response-time analysis, utilization tests) treats a task's execution time C as fixed. Under passive cooling, C of CPU-heavy stages grows over the run as the clock drops; a task set that passes the analysis cold can miss deadlines minutes later.
 - **Either outcome is a result:**
-  - If H2a holds → standard models misjudge slowdown and savings for memory-bound stages.
-  - If everything scales as 1/f → model holds on this platform; focus shifts to the controller's actual gains.
+  - H1b holds → offloading buys timing predictability, not only energy; analysis must use the throttled clock, not the nominal one.
+  - Pipeline load is too light to throttle → thermal effect not relevant at this workload; the paper reports the direct energy result (H1a) and the load level at which throttling begins.
 
-### RQ1: Offloading
-- **Configurations:** CPU (`libx264`) vs. hardware codec (`h264_v4l2m2m`); frame transfer by copy vs. zero-copy (dmabuf).
-- **Hypothesis H1:** Hardware offload saves significant energy only with zero-copy; at 1080p, copies eat most of the benefit.
+### RQ2: Frequency scaling (supporting)
+- **Measure:** per-stage execution time at fixed frequencies (600–1800 MHz), in short runs so the firmware does not override the setting.
+- **Hypothesis H2:** CPU-bound stages (detection) scale as 1/f; memory-bound stages (decode, copies) scale less.
+- **Use in the paper:** explains how much a throttling event (e.g., 1800 → 600 MHz) slows each stage, linking the RQ1 timing results to the clock trace.
 
-### RQ3: Scheduling
-- **Schedulers:** CFS (default), `SCHED_FIFO` with pinned cores (partitioned fixed-priority / RMS-style), `SCHED_DEADLINE` (global EDF).
-- **Background load:** `stress-ng`.
-- **Hypothesis H3:** Similar averages; under load, CFS has a much worse latency tail.
-- **Extra question:** Since `schedutil` reads `SCHED_DEADLINE` reserved bandwidth when choosing frequency, does reserving the right CPU time with EDF give near-optimal energy without a custom controller?
+### RQ3: Scheduling (optional)
+- **Schedulers:** CFS (default), `SCHED_FIFO` with pinned cores, `SCHED_DEADLINE` (global EDF); background load from `stress-ng`.
+- **Hypothesis H3:** similar averages; under load, CFS has a much worse latency tail.
 
 ---
 
@@ -52,7 +54,7 @@ A video pipeline must finish every frame before a deadline (≈33 ms at 30 FPS).
 - **Platform facts that shape the design:**
   - All four Cortex-A72 cores share **one clock**, so no per-core DVFS.
   - 13 frequency steps: 600–1800 MHz in 100 MHz increments. Core voltage is set by firmware, so not every step lowers voltage; voltage per step must be measured (`vcgencmd measure_volts core`).
-  - Thermal throttling around 80 °C, so temperature must be controlled and logged.
+  - Passive cooling (decision): sustained full load throttles the CPU (exp 01: 85.7 °C, clock down to 600 MHz). Temperature, ARM clock and throttle flags are logged in every run.
   - No on-board power telemetry on Pi 4; power is measured externally.
 - **Input:** pre-recorded video files (repeatable), at least 2 resolutions × 2 motion levels.
 
@@ -129,11 +131,12 @@ Keep this table current; it becomes the paper's setup section.
 | Resolution | 720p, 1080p |
 | Video content | Low motion, high motion |
 | Codec placement | CPU, HW codec (copy), HW codec (zero-copy) |
+| Run length | short (cold chip, < 30 s), sustained (≥ 3 min, throttling allowed) |
 | Frequency policy | performance, ondemand, schedutil, race-to-idle, slack controller, fixed frequencies |
 | Scheduler | CFS, SCHED_FIFO pinned, SCHED_DEADLINE |
 | Background load | none, stress-ng |
 
-Not every combination will be run. RQ2 varies frequency policy with other factors fixed at a reference setting; RQ1 and RQ3 likewise.
+Not every combination will be run. RQ1 varies codec placement × run length with other factors at a reference setting; RQ2 varies fixed frequency in short runs; RQ3 (optional) varies scheduler and load.
 
 ### 6.2 Metrics
 - **Energy per frame** (J), computed by integrating power over the run and dividing by frames. **Not** average watts alone.
@@ -141,6 +144,7 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 - **Frame latency:** median, p99, maximum. Not mean ± SD.
 - **Per-stage execution time at each frequency** → C_i(f) table.
 - CPU frequency over time, die temperature, throttle flags.
+- Time to first throttle; fraction of run time throttled; per-stage execution time over the run (drift).
 
 ### 6.3 Statistics
 - At least 10 runs × ~3 minutes per configuration, after warm-up.
@@ -157,25 +161,25 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 - [ ] Frequency-switching latency measured and reported
 
 ### 6.5 Analysis-vs.-reality step
-1. Measure C_i(f) for each stage at each frequency.
-2. Use utilization / response-time analysis to **predict** the lowest frequency that meets D, and the energy it should save.
-3. Run it and **measure**.
-4. Explain the gap: memory-bound stages, fixed board power, switching overhead.
+1. Measure each stage's execution time C_i in a short (cold) run, for hardware and software configurations.
+2. Use response-time / utilization analysis with those cold C_i values to **predict** whether the pipeline meets its frame deadline.
+3. Run sustained and **measure**: when do deadline misses begin, and do they coincide with clock drops in the trace?
+4. Use the RQ2 C(f) table to check whether the measured slowdown matches the clock drop. Explain any remaining gap (memory-bound stages, copies).
 
 ---
 
 ## 7. Week-one feasibility test
 
-**Goal:** confirm a paper exists here before committing.
+**Goal:** confirm the main question has a measurable effect before building everything.
 
-1. Install OS, ffmpeg, detector; build the minimal pipeline on one video file.
-2. Add per-stage timestamps.
-3. Run at **lowest** and **highest** fixed CPU frequency.
-4. Compare per-stage time ratios.
+1. Build pipeline v1: decode → preprocess → detect → overlay → encode, with a timestamp at each stage boundary and a clock/temperature sample per frame.
+2. Two modes: **software** (CPU decode + `libx264`) and **hardware** (`h264_v4l2m2m` decode + encode); same detector in both.
+3. One sustained run (≥ 3 min) per mode, interleaved, `ondemand` governor, same input clip.
+4. Plot per-frame stage times and the ARM clock over the run, for both modes.
 
 **Decision rule:**
-- Decode/copy time barely changes while detection time ~doubles → **RQ2 is alive; proceed.**
-- Everything scales cleanly as 1/f → shift main focus to RQ3 or RQ1.
+- Software mode throttles and its per-frame time grows while hardware mode stays flat → **H1b is alive; proceed.**
+- Neither mode throttles at the real pipeline load → thermal angle is weak at this workload; lead with the direct energy result (H1a) and report the load at which throttling starts (exp 01 shows it does under full load).
 
 ---
 
@@ -185,9 +189,9 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 |---|---|---|
 | Paper review | 10% | Review a paper that seeds related work (candidate: Pillai & Shin, SOSP 2001) |
 | Proposal | 5% | Problem, RQs, hypotheses, system model (sections 2–3 of this file) |
-| Mid-term review | 10% | Baseline pipeline + C_i(f) table + first energy numbers |
-| Final demo | 20% | Live pipeline showing policies side by side, with energy and miss-ratio readouts |
-| Final paper | 15% | 6-page IEEE paper: RQ2 main, RQ1/RQ3 supporting |
+| Mid-term review | 10% | Pipeline v1 in hardware and software modes, per-stage times with clock traces, first energy numbers |
+| Final demo | 20% | Live pipeline in hardware and software modes side by side: frame times, clock, temperature, energy and deadline misses |
+| Final paper | 15% | 6-page IEEE paper: RQ1 main (offloading under passive cooling), RQ2 supporting, RQ3 only if time allows |
 
 ---
 
@@ -220,10 +224,11 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 ## 11. Related work (seed list)
 
 - Liu & Layland, J. ACM 20(1), 1973: RM/EDF and utilization bounds.
-- Pillai & Shin, ACM SOSP 2001: real-time DVFS. **Key assumption under test.**
+- Pillai & Shin, ACM SOSP 2001: real-time DVFS; source of the C(f) ∝ 1/f assumption tested in RQ2.
 - Buttazzo, Real-Time Systems 29(1), 2005: RM vs. EDF comparison.
 - Banakar et al., CODES 2002: scratchpad vs. cache (memory-boundedness context).
 - Linux kernel docs: `SCHED_DEADLINE` and `schedutil`.
+- *To find:* thermal-aware real-time scheduling and dynamic thermal management on embedded SoCs (for the H1b framing).
 
 ---
 
@@ -235,12 +240,13 @@ Not every combination will be run. RQ2 varies frequency policy with other factor
 | 2026-11-05 | Network access | Desktop image re-flashed; direct Ethernet link | SSH works at 10.42.0.41 | Wi-Fi not joining. PC's UFW blocked DHCP on the adapter, so the Pi's Ethernet came up then dropped; fixed with an interface-scoped allow rule |
 | 2026-11-05 | Base setup | full-upgrade → kernel 6.18.60; console boot; ffmpeg 7.1.5 | Done | Ping passed but TCP was blocked until the UFW route rule was added (UFW forwards ICMP by default) |
 | 2026-11-06 | Exp 00 codec check (run 2, `20261106T001525`) | 720p30 synthetic, 300 frames, `ondemand`, no power data | HW codec works (`/dev/video10` dec, `/dev/video11` enc). CPU-ms/frame: sw_enc 50, hw_enc 12 (net of pattern generation), sw_dec 10.8, hw_dec 0.5. Throughput: hw_enc 159 fps, sw_enc 66, hw_dec 184, sw_dec 315. 49–56 °C, no throttling | Run 1 agreed within ~2%. hw_enc still costs ~12 ms CPU/frame (≈ software decode), so not free; cause unknown (frame copies? driver polling? frequency effects under `ondemand`). Not paper data |
-| 2026-11-06 | Exp 01 thermal soak (`data/raw/01_thermal_soak/`) | `stress-ng --cpu 4`, 600 s, `performance`, heatsinks only, **no fan** | Max 85.7 °C; clock fell to 600 MHz; `get_throttled` = `0xe0000` (freq capped, throttled, soft temp limit occurred; **no under-voltage**) | Passive cooling is insufficient: sustained load silently changes the CPU frequency, which is RQ2's independent variable. Active cooling required. Power supply confirmed adequate |
+| 2026-11-06 | Exp 01 thermal soak (`data/raw/01_thermal_soak/`) | `stress-ng --cpu 4`, 600 s, `performance`, heatsinks only, **no fan** | Max 85.7 °C; clock fell to 600 MHz; `get_throttled` = `0xe0000` (freq capped, throttled, soft temp limit occurred; **no under-voltage**) | Under passive cooling, sustained full load makes the firmware lower the clock on its own. Led to the passive-cooling decision (§10) and the RQ1 thermal hypothesis (H1b). Power supply confirmed adequate |
 
 ---
 
 ## Changelog
 
+- **v0.11** (2026-11-06): Research focus changed: RQ1 (offloading under passive cooling) is now the main question, testing the fixed-execution-time assumption; RQ2 supporting (short runs); RQ3 optional. Rewrote §2, §6.5, §7; updated title, system model, factors, metrics, milestones.
 - **v0.10** (2026-11-06): Cooling decision: passive cooling, throttling measured and reported rather than prevented; controls updated.
 - **v0.9** (2026-11-06): Fan broken; thermal soak shows throttling to 600 MHz at 85.7 °C with heatsinks only; cooling and thermal-protocol open items; controls updated.
 - **v0.8** (2026-11-06): Results log: experiment 00 run 2; open items on hardware-encode CPU cost and fixing the governor for measurements.
