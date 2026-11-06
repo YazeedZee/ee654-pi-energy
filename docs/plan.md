@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.13)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.14)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -245,11 +245,14 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | 2026-11-06 | Exp 00 codec check (run 2, `20261106T001525`) | 720p30 synthetic, 300 frames, `ondemand`, no power data | HW codec works (`/dev/video10` dec, `/dev/video11` enc). CPU-ms/frame: sw_enc 50, hw_enc 12 (net of pattern generation), sw_dec 10.8, hw_dec 0.5. Throughput: hw_enc 159 fps, sw_enc 66, hw_dec 184, sw_dec 315. 49–56 °C, no throttling | Run 1 agreed within ~2%. hw_enc still costs ~12 ms CPU/frame (≈ software decode), so not free; cause unknown (frame copies? driver polling? frequency effects under `ondemand`). Not paper data |
 | 2026-11-06 | Exp 01 thermal soak (`data/raw/01_thermal_soak/`) | `stress-ng --cpu 4`, 600 s, `performance`, heatsinks only, **no fan** | Max 85.7 °C; clock fell to 600 MHz; `get_throttled` = `0xe0000` (freq capped, throttled, soft temp limit occurred; **no under-voltage**) | Under passive cooling, sustained full load makes the firmware lower the clock on its own. Led to the passive-cooling decision (§10) and the RQ1 thermal hypothesis (H1b). Power supply confirmed adequate |
 | 2026-11-06 | Exp 02 smoke test (`20261106T204009`) | pipeline v1, pedestrian_area 720p30, N = 3, 20 s × (sw hw hw sw) | **Both modes overloaded:** sw 11.1 fps, hw 5.0 fps (target 30). Detection ≈ 115 ms per call. **hw slower and uses more CPU per frame** (302 vs 239 ms) although its decode (0.4 ms) and encode (1.7 ms) stages are tiny: ~150 ms per frame unaccounted for in the printed stages | Suspect: CPU access to hardware-codec buffers (colour conversion of decoded frames), same family as exp 00's 12 ms hw-encode cost → early H1 evidence, to confirm. Runner fixed: runs bounded by wall-clock time; service time and utilization reported, since latency is meaningless when overloaded |
+| 2026-11-06 | Exp 02 smoke test 2 (`20261106T211822`) | as above, new runner | hw `to_bgr` 142–162 ms per frame vs sw 4–5 ms. sw cannot reach 30 fps even on frames without detection (~48 ms typical service time). Detection 110–155 ms per call | Locates the hw slowdown in the colour conversion of decoded frames. Exp 00's "hw decode nearly free" held only because its null output never read the pixels |
+| 2026-11-06 | Exp 03 frame access (`20261106T215616`) | 720p, 150 frames, medians | Raw copy of decoded planes: sw 0.93 ms (1483 MB/s), **hw 2.33 ms (595 MB/s)**. Copy then OpenCV convert: hw 2.33 + 2.03 ms. **PyAV direct conversion of hw frames: 138 ms** (sw 3.9 ms) | Hardware decoder buffers are ~2.5× slower for the CPU to read (small, real data-movement cost: H1). The 138 ms is the conversion's access pattern on that memory, not the memory alone: copy-then-convert is ~30× faster. Pipeline now uses copy-then-convert for both modes (`--convert copy`, default); direct path kept as an option |
 
 ---
 
 ## Changelog
 
+- **v0.14** (2026-11-06): Results log: exp 02 smoke test 2 and exp 03 (hardware frame access); pipeline conversion fix.
 - **v0.13** (2026-11-06): Results log: exp 02 smoke test (both modes overloaded; hw unexpectedly slower).
 - **v0.12** (2026-11-06): Detector, inputs and pipeline v1 recorded; detector load sweep (N) added as a factor.
 - **v0.11** (2026-11-06): Research focus changed: RQ1 (offloading under passive cooling) is now the main question, testing the fixed-execution-time assumption; RQ2 supporting (short runs); RQ3 optional. Rewrote §2, §6.5, §7; updated title, system model, factors, metrics, milestones.

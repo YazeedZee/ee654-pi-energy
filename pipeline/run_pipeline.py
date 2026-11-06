@@ -16,6 +16,13 @@ Modes:
   hw  hardware codec for both (h264_v4l2m2m decode and encode)
 The detector (OpenCV DNN, MobileNet-SSD) runs on the CPU in both modes.
 
+Colour conversion of decoded frames (--convert):
+  copy    (default) bulk-copy the decoded planes into normal memory, then convert with OpenCV.
+  direct  PyAV/swscale conversion straight from the decoder's buffer. Exp 03 showed this
+          takes ~138 ms per 720p frame on hardware-decoded frames (vs ~4 ms with copy),
+          because of how it reads the decoder's memory. Kept for comparison.
+Both modes use the same method, so the sw/hw comparison stays fair.
+
 Outputs in --out-dir:
   frames.csv    one row per frame: stage times, latency, deadline miss, temperature
   summary.json  configuration, versions and summary statistics (warm-up excluded)
@@ -68,6 +75,8 @@ def parse_args():
     p.add_argument("--bitrate", type=int, default=4_000_000)
     p.add_argument("--warmup", type=float, default=2.0, help="seconds excluded from summary stats")
     p.add_argument("--free-run", action="store_true", help="no pacing: process frames as fast as possible")
+    p.add_argument("--convert", choices=["copy", "direct"], default="copy",
+                   help="decoded-frame colour conversion: bulk copy then OpenCV (default) or PyAV direct")
     p.add_argument("--model-dir", default=str(Path(__file__).resolve().parent / "models"))
     p.add_argument("--out-dir", required=True)
     return p.parse_args()
@@ -112,6 +121,24 @@ def frame_source(decoder, packets):
         for data in packets:
             for f in decoder.decode(av.Packet(data)):
                 yield f
+
+
+def planes_to_i420(frame):
+    """Bulk-copy a yuv420p frame's planes (honouring line padding) into one contiguous I420 array."""
+    w, h = frame.width, frame.height
+    out = np.empty((h * 3 // 2, w), dtype=np.uint8)
+    out[:h] = np.frombuffer(frame.planes[0], np.uint8).reshape(-1, frame.planes[0].line_size)[:h, :w]
+    cw, ch = w // 2, h // 2
+    for k, p in enumerate(frame.planes[1:3]):
+        c = np.frombuffer(p, np.uint8).reshape(-1, p.line_size)[:ch, :cw]
+        out[h + k * ch // 2: h + (k + 1) * ch // 2] = c.reshape(-1, w)
+    return out
+
+
+def to_bgr(frame, method):
+    if method == "copy" and frame.format.name == "yuv420p":
+        return cv2.cvtColor(planes_to_i420(frame), cv2.COLOR_YUV2BGR_I420)
+    return frame.to_ndarray(format="bgr24")
 
 
 def load_detector(model_dir):
@@ -172,7 +199,7 @@ def main():
         t0 = time.perf_counter()
         frame = next(src)
         t1 = time.perf_counter()
-        img = frame.to_ndarray(format="bgr24")
+        img = to_bgr(frame, a.convert)
         t2 = time.perf_counter()
         ran_detect = (i % a.detect_every == 0)
         if ran_detect:
