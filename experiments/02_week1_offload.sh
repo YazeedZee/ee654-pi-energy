@@ -10,20 +10,20 @@
 # Environment overrides (defaults in brackets):
 #   DURATION [180]  seconds per run      N   [3]   detect every N frames
 #   REPS     [1]    sw-hw-hw-sw blocks   GAP [60]  seconds idle between runs
-#   SAMPLE   [0.5]  sampler period (s)
+#   SAMPLE   [0.5]  sampler period (s)  FPS [30]  frame release rate (deadline = 1/FPS)
 # Output: data/raw/02_week1_offload/<timestamp>/{sysinfo.txt, clock.csv, run<k>_<mode>/...}
 set -uo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 INPUT="${1:-$REPO_DIR/data/inputs/pedestrian_area_720p30.mp4}"
-DURATION="${DURATION:-180}"; N="${N:-3}"; REPS="${REPS:-1}"; GAP="${GAP:-60}"; SAMPLE="${SAMPLE:-0.5}"
+DURATION="${DURATION:-180}"; N="${N:-3}"; REPS="${REPS:-1}"; GAP="${GAP:-60}"; SAMPLE="${SAMPLE:-0.5}"; FPS="${FPS:-30}"
 
 [[ -f "$INPUT" ]] || { echo "Input not found: $INPUT (run scripts/fetch_inputs.sh)"; exit 1; }
 OUT="$REPO_DIR/data/raw/02_week1_offload/$(date +%Y%m%dT%H%M%S)"
 mkdir -p "$OUT"
 "$REPO_DIR/scripts/sysinfo.sh" "$OUT/sysinfo.txt" >/dev/null
-printf 'input=%s\nduration=%s\ndetect_every=%s\nreps=%s\ngap=%s\ninput_sha256=%s\n' \
-  "$INPUT" "$DURATION" "$N" "$REPS" "$GAP" "$(sha256sum "$INPUT" | cut -d' ' -f1)" > "$OUT/params.txt"
+printf 'input=%s\nduration=%s\ndetect_every=%s\nreps=%s\ngap=%s\nfps=%s\ninput_sha256=%s\n' \
+  "$INPUT" "$DURATION" "$N" "$REPS" "$GAP" "$FPS" "$(sha256sum "$INPUT" | cut -d' ' -f1)" > "$OUT/params.txt"
 
 # Background sampler: real ARM clock (firmware view), temperature, throttle flags
 echo "t,arm_hz,temp_c,throttled" > "$OUT/clock.csv"
@@ -40,9 +40,9 @@ for ((r = 0; r < REPS; r++)); do ORDER+=(sw hw hw sw); done
 for mode in "${ORDER[@]}"; do
   k=$((k + 1))
   (( k > 1 )) && { echo "-- idle ${GAP}s"; sleep "$GAP"; }
-  echo "== run $k/${#ORDER[@]}: $mode (${DURATION}s, detect every $N)"
+  echo "== run $k/${#ORDER[@]}: $mode (${DURATION}s, ${FPS} fps, detect every $N)"
   python3 "$REPO_DIR/pipeline/run_pipeline.py" --input "$INPUT" --mode "$mode" \
-    --duration "$DURATION" --detect-every "$N" --out-dir "$OUT/run${k}_${mode}" \
+    --duration "$DURATION" --fps "$FPS" --detect-every "$N" --out-dir "$OUT/run${k}_${mode}" \
     || echo "   run $k FAILED"
 done
 
