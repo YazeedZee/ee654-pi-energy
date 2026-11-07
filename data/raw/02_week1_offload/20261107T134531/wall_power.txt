@@ -1,0 +1,23 @@
+# Wall power readings for experiment 02 run 20261107T134531 (governor test)
+# hw mode only, 15 fps, N = 10, 120 s per run; RUNS="hw:ondemand hw:performance hw:performance hw:ondemand"
+# Instrument: plug-in AC wall meter between the outlet and the Pi's USB-C charger
+#   (AC side: includes charger losses and the 5 V fan). Fan on, case off.
+# Method: every displayed value written down at ~5 s intervals during each run ("manual logging").
+# Recorded by Yazeed, 2026-11-07 ~13:45-13:56 (Asia/Riyadh).
+# Note: readings alternate high/low because detection bursts (1.5 Hz) alias with the
+#   meter's ~1 Hz display update; use means over many readings, not single values.
+#
+idle_before: 3.6
+run1_hw-ondemand: 5.0 5.5 5.6 5.9 5.6 5.5 5.6 5.5 5.1 5.5 5.7 5.5 5.5 5.4 5.6 5.5 5.6 5.5 5.3 5.4 5.6 5.5
+run2_hw-performance: 5.0 5.6 4.9 4.8 5.6 4.7 5.6 4.8 5.4 4.7 5.6 4.7 5.6 4.7 4.6 5.6 4.7 5.6 5.5 4.7 5.5 4.7
+run3_hw-performance: 4.9 5.6 4.9 5.6 4.9 5.6 5.0 5.7 5.0 5.6 5.7 5.1 5.6 5.0 5.6 5.1 5.7 5.2 5.6 5.2 5.6 5.3 5.7 5.6 5.3 5.7
+run4_hw-ondemand: 5.0 5.4 5.0 5.4 5.0 5.4 4.9 5.4 4.9 5.4 5.0 5.4 4.8 5.4 4.8 5.3 4.7 5.3 4.8 5.0 5.4 5.5 4.6 5.4 4.6 5.4 4.7 5.4 4.5 5.4 4.5
+idle_after: 3.6 3.6
+#
+# Derived (mean ± 95% CI assuming independent readings; readings are autocorrelated, so CIs are optimistic):
+#   run1 ondemand    5.50 ± 0.08 W (n=22)
+#   run2 performance 5.12 ± 0.19 W (n=22)
+#   run3 performance 5.38 ± 0.12 W (n=26)
+#   run4 ondemand    5.09 ± 0.12 W (n=31)
+#   pooled: ondemand 5.26 W, performance 5.26 W; Mann-Whitney p = 0.41, Welch t p = 0.98
+#   Same-governor runs differ by ~0.4 W: run-to-run variation exceeds any governor effect.
