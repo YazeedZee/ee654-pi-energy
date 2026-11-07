@@ -9,6 +9,10 @@ clock range and how many samples had a throttle condition active *at that moment
 (get_throttled bits 16-19 are 'has occurred since boot' and are sticky, so they cannot
 say *when* something happened; bits 0-3 can.)
 
+Window = first frame release to last frame completion (release + latency), so overloaded
+runs are checked over their full wall-clock length. (Before 2026-11-07 the window ended at
+the last *scheduled* release, which cut overloaded runs short.)
+
 Usage: python3 analysis/clock_check.py data/raw/02_week1_offload/<timestamp>
 """
 import csv
@@ -30,8 +34,9 @@ def main(d):
     print(f"{'run':<10}{'samples':>8}{'clk min':>9}{'clk med':>9}{'clk max':>9}{'temp max':>9}  active-now counts")
     for rd in sorted(p for p in d.iterdir() if p.is_dir() and (p / "frames.csv").exists()):
         with open(rd / "frames.csv") as f:
-            rel = [float(r["release_wall_s"]) for r in csv.DictReader(f)]
-        t0, t1 = rel[0], rel[-1]
+            fr = [(float(r["release_wall_s"]), float(r["latency_ms"])) for r in csv.DictReader(f)]
+        t0 = fr[0][0]
+        t1 = max(rel + lat / 1e3 for rel, lat in fr)
         s = [c for c in clock if t0 <= c[0] <= t1]
         if not s:
             print(f"{rd.name:<10} no clock samples in window"); continue

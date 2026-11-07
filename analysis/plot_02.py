@@ -7,6 +7,9 @@ Writes <timestamp>/plot_02.png. Needs pandas and matplotlib.
 
 What to look for (plan §7 decision rule): in sustained software runs, does per-frame
 time grow when the ARM clock drops, while hardware runs stay flat?
+
+Time axis = when each frame finished (release + latency), so overloaded runs show their
+full wall-clock length. Rolling means use fixed time windows, not frame counts.
 """
 import json
 import sys
@@ -34,12 +37,21 @@ def main(run_dir):
         f = pd.read_csv(rd / "frames.csv")
         s = json.load(open(rd / "summary.json"))
         t0 = f["release_wall_s"].iloc[0]
-        t = f["release_wall_s"] - t0
+        t = f["release_wall_s"] + f["latency_ms"] / 1e3 - t0      # completion time in run
+        t_end = t.iloc[-1]
         deadline = s["deadline_ms"]
+        tidx = pd.to_timedelta(t, unit="s")
+
+        def roll(series, mask=None, window="2s", how="mean"):
+            sel = series if mask is None else series[mask]
+            idx = tidx if mask is None else tidx[mask]
+            r = pd.Series(sel.values, index=idx).rolling(window)
+            out = r.median() if how == "median" else r.mean()
+            return out.index.total_seconds(), out.values
 
         ax = axes[0, col]
         ax.plot(t, f["service_ms"], lw=0.5, color=MODE_COLOR.get(mode, "k"))
-        ax.plot(t, f["service_ms"].rolling(30, min_periods=1).median(), lw=1.5, color="k", label="rolling median (30 frames)")
+        ax.plot(*roll(f["service_ms"], window="1s", how="median"), lw=1.5, color="k", label="1 s rolling median")
         ax.axhline(deadline, ls="--", color="grey", lw=1, label=f"frame period {deadline:.1f} ms")
         ax.set_title(f"{rd.name}  util {s['utilization']:.2f}  miss {100 * s['miss_ratio']:.1f}%", fontsize=9)
         if col == 0:
@@ -47,22 +59,22 @@ def main(run_dir):
             ax.legend(fontsize=7, loc="upper left")
 
         ax = axes[1, col]
-        nondet = f[f["detected"] == 0]
+        det = f["detected"] == 1
+        warm = t >= s["config"]["warmup"]          # same warm-up the summary stats exclude
         for st in STAGES:
             if st == "detect_ms":
-                series = f.loc[f["detected"] == 1, st]
-                tt = t[f["detected"] == 1]
+                x, y = roll(f[st], det & warm, window="10s")
             else:
-                series, tt = nondet[st], t[f["detected"] == 0]
-            ax.plot(tt, series.rolling(30, min_periods=1).mean(), lw=1, label=st.replace("_ms", ""))
+                x, y = roll(f[st], ~det & warm, window="2s")
+            ax.plot(x, y, lw=1, label=st.replace("_ms", ""))
         ax.set_yscale("log")
         if col == 0:
-            ax.set_ylabel("stage time, 1 s mean (ms, log)")
+            ax.set_ylabel("stage time (ms, log), after warm-up\n2 s mean; detect 10 s mean")
             ax.legend(fontsize=7, ncol=2, loc="upper left")
 
         ax = axes[2, col]
         if clock is not None:
-            c = clock[(clock["t"] >= t0) & (clock["t"] <= f["release_wall_s"].iloc[-1])]
+            c = clock[(clock["t"] >= t0) & (clock["t"] <= t0 + t_end)]
             ax.plot(c["t"] - t0, c["arm_hz"] / 1e6, color="k", lw=1.2, label="ARM clock")
             ax2 = ax.twinx()
             ax2.plot(c["t"] - t0, c["temp_c"], color="#e67e22", lw=1, label="temp")
