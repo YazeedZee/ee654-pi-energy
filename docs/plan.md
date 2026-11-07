@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.27)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.28)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -224,7 +224,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 - [x] Reference runs with fan on (2026-11-07): 30 fps `20261107T001714`, 15 fps `20261107T003226`; both clean.
 - [x] Interim energy result with the wall meter (2026-11-07, `20261107T130959/wall_power.txt`): hw ≈ −1.0 W, −16% J/frame total, −37% above idle.
 - [x] Power-meter decision (2026-11-07): **no logging meter will be bought**; energy evidence = AC wall meter read by eye, reported as approximate (direction robust, magnitude ±0.2–0.3 W per reading). Optional zero-cost improvement: film the meter display during runs and transcribe readings at fixed intervals for means and confidence intervals.
-- [x] Governor test (2026-11-07, `20261107T134531`): no measurable power difference; performance removes clock dips, small p99 gain. Pending: count of tall (>145 ms) hw frames per governor.
+- [x] Governor test (2026-11-07, `20261107T134531`): no measurable power difference; performance removes clock dips and all >145 ms hw detection frames (causal).
 - [ ] Detector load sweep N ∈ {1, 3, 10} at 15 fps (fan on).
 - [ ] Pipeline v2: detection on its own thread, so the deadline-miss ratio reflects the frame path rather than queueing behind inline detection.
 - [ ] Cooling comparison: the clean passive 30 fps run (`20261106T233239`) serves as the **no-fan** condition against the fan-on reference; blower comparison still later.
@@ -275,11 +275,13 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | 2026-11-07 | **Governor dips vs frame time** (`20261107T003226`, hw runs) | 15 fps, `ondemand`; frames within ±0.3 s of a clock sample < 1800 MHz | ~21 clock dips (800–1000 MHz) per hw run, none in sw runs. Near a dip, hw detection frames median **140–159 ms vs 121–122 ms** normally; other frames 18.0 vs 14.9 ms (+16–30%) | The light load that offloading creates lets `ondemand` lower the clock, and frames that start during a dip run slower: an energy-saving vs. timing-outlier trade-off (links RQ1 and RQ2). Association at ~0.5 s sampling, not yet causal: test hw at 15 fps under `performance` vs `ondemand` |
 | 2026-11-07 | **First energy result: wall meter, equal work** (`20261107T130959`, readings in `wall_power.txt`) | 15 fps, N = 10, 120 s × (sw hw hw sw), fan on; AC wall meter read by eye | **Idle 3.6 W. sw ≈ 6.3 W (runs 6.2–6.5, 6.1–6.4); hw ≈ 5.3 W (4.7–5.6, 5.4–5.6).** Both sw runs above both hw runs. Per frame: sw ≈ 0.42 J total / 0.18 J above idle; hw ≈ 0.35 J / 0.11 J | **H1a supported with first energy numbers:** CPU −52%, but power added above idle only ≈ −37%, and total energy per frame only ≈ −16% because the 3.6 W idle floor is paid in both modes. Wider hw spread consistent with governor clock dips. Limits: manual AC-side readings (charger losses + fan included), ≈ ±0.2–0.3 W; direction robust, magnitude to confirm with a logging meter |
 | 2026-11-07 | **Governor test** (`20261107T134531`, readings in `wall_power.txt`) | hw only, 15 fps, N = 10, 120 s × (ondemand, performance, performance, ondemand); wall meter read every ~5 s (22–31 readings/run) | **Power: ondemand 5.50 / 5.09 W, performance 5.12 / 5.38 W; pooled 5.26 vs 5.26 W** (Mann-Whitney p = 0.41). performance: clock min 1800 MHz, p99 service 133.9–134.3 ms, 68.6–68.8 ms CPU/frame. ondemand: clock min 700–800 MHz, p99 136.3–138.6 ms; run 4 slower overall (median 17.9 vs 15.1 ms, 75.8 ms CPU/frame) | **ondemand gives no measurable energy saving at this load** (difference ≪ ~0.4 W run-to-run spread) but adds timing variability → supports H2b (with high fixed board power, running fast costs about the same). performance removes the dips; p99 improves only ~2–4 ms, so the dips explain only part of the tail (count of >145 ms frames pending). Meter readings alias with 1.5 Hz detection bursts: use means of many readings. sw−hw 1.0 W difference remains above the ~0.4 W run-to-run spread |
+| 2026-11-07 | **Governor test: tall-frame count** (`20261107T134531`) | detection frames after warm-up, 178 per run | **performance: 0 detection frames > 145 ms (max 142.8 / 144.1 ms).** ondemand: 9 frames > 145 ms and 4 > 160 ms (max 174.6 ms) in run 1; 1 > 145 ms (max 147.2 ms) in run 4. Median detection-frame time equal (121.4–121.6 ms; run 4 125.2). Time at lowered clock: ondemand 7% and 33%, performance 0% | **Causal (controlled manipulation): the tall hw frames are caused by ondemand's clock dips.** Fixing the clock removes the tail without changing typical frame time. ondemand behaviour also varies run to run (7% vs 33% low-clock time). Run 4's lowest power (5.09 W) hints at a small saving but is within run-to-run spread |
 
 ---
 
 ## Changelog
 
+- **v0.28** (2026-11-07): Governor tall-frame count: performance eliminates the >145 ms hw frames (causal link to ondemand dips).
 - **v0.27** (2026-11-07): Governor test result (ondemand ≈ performance in power; performance removes dips); meter aliasing note.
 - **v0.26** (2026-11-07): Decision: no logging power meter; wall-meter evidence framed as approximate. Exp 02 script: per-run mode/governor list (RUNS) for the governor test.
 - **v0.25** (2026-11-07): First energy result (wall meter, equal work): hw −1.0 W, −16% J/frame total, −37% above idle vs. −52% CPU.
