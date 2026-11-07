@@ -1,0 +1,20 @@
+# Wall power readings for experiment 02 run 20261107T130959 (15 fps, N = 10, 120 s per run)
+# Instrument: plug-in AC wall meter between the outlet and the Pi's USB-C charger
+#   (measures AC side: includes charger conversion losses and the 5 V fan).
+# Method: read by eye; each run, after ~30 s settling, the value shown most often
+#   over ~1 minute ("typical"), plus less frequent excursions ("occasional").
+# Recorded by Yazeed, 2026-11-07 ~13:10-13:21 (Asia/Riyadh). Fan on, case off.
+# AC voltage ~225 V. Idle current 0.049 A; under load ~0.080 A (max 0.084 A).
+#
+# phase,     typical_low_W, typical_high_W, occasional_W
+idle_before, 3.6, 3.6, -
+run1_sw,     6.2, 6.5, 6.0/6.6
+run2_hw,     4.7, 5.6, 4.6/5.7
+run3_hw,     5.4, 5.6, 5.1/5.7
+run4_sw,     6.1, 6.4, 5.9/6.5
+idle_after,  3.6, 3.6, -
+#
+# Derived (midpoint of typical range; manual, approx. +/-0.2-0.3 W per reading):
+#   sw  ~6.3 W total, ~+2.7 W above idle -> ~0.42 J/frame total, ~0.18 J/frame above idle
+#   hw  ~5.3 W total, ~+1.7 W above idle -> ~0.35 J/frame total, ~0.11 J/frame above idle
+#   hw vs sw: -1.0 W; -16% energy per frame (total); -37% (above idle). CPU per frame: -52%.

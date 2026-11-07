@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.24)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.25)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -222,7 +222,8 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 - [ ] Fix the CPU frequency (`userspace` governor at a set step, or `performance`) for all measurement runs; CPU-seconds are not comparable across runs when `ondemand` changes the clock.
 - [x] Reference runs on the verified supply (2026-11-06/07): 30 fps clean; 15 fps clean for CPU, temperature invalid (airflow changed).
 - [x] Reference runs with fan on (2026-11-07): 30 fps `20261107T001714`, 15 fps `20261107T003226`; both clean.
-- [ ] **Energy measurement** for the equal-work comparison: power meter needed (USB-C logger or INA226 + STM32). Interim: read the wall meter during sw vs. hw at 15 fps (relative comparison only).
+- [x] Interim energy result with the wall meter (2026-11-07, `20261107T130959/wall_power.txt`): hw ≈ −1.0 W, −16% J/frame total, −37% above idle.
+- [ ] **Logging power meter** (USB-C logger or INA226 + STM32) to confirm the energy magnitudes with recorded traces and per-frame energy.
 - [ ] Governor test (RQ2 link): hw at 15 fps under `performance` vs `ondemand`; do the timing outliers disappear, and at what energy cost?
 - [ ] Detector load sweep N ∈ {1, 3, 10} at 15 fps (fan on).
 - [ ] Pipeline v2: detection on its own thread, so the deadline-miss ratio reflects the frame path rather than queueing behind inline detection.
@@ -272,11 +273,13 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 | 2026-11-07 | **Exp 02 reference, fan on, 15 fps equal work** (`20261107T003226`) | as above, FPS = 15 | **sw 2.17–2.18 cores, 145 ms CPU/frame, utilization 0.87; hw 1.04–1.06 cores, 70 ms CPU/frame, utilization 0.41.** Matched pair from 34.1 °C: **hw → 37.0 °C, sw → 44.3 °C** (+2.9 vs +10.2 °C). hw clock dips to 800 MHz (governor, light load); no throttle conditions, flags 0x0 | **Reference dataset (15 fps).** Equal work: hw −52% CPU and **7.3 °C cooler** after 3 min. Thermal-headroom result confirmed in clean conditions |
 | 2026-11-07 | **Analysis fix** (`plot_02.py`, `clock_check.py`) | — | Both used each frame's *scheduled* release time as the time axis / check window. For overloaded runs (sw at 30 fps: ~3200 frames in 180 s) that ended at ~107 s, so the last ~40% of those runs was missing from plots and clock checks. Fixed: time = completion (release + latency); rolling means over fixed time windows; warm-up excluded from the stage panel | Re-checked fan-on 30 fps reference: sw runs now 340 samples, still no throttle conditions. Reference conclusions unchanged (sticky flags were 0x0 anyway). Preliminary runs' sw clock checks were partial (already marked preliminary). Earlier note that sw had fewer samples 'because the sampler slowed' was wrong: it was this window bug |
 | 2026-11-07 | **Governor dips vs frame time** (`20261107T003226`, hw runs) | 15 fps, `ondemand`; frames within ±0.3 s of a clock sample < 1800 MHz | ~21 clock dips (800–1000 MHz) per hw run, none in sw runs. Near a dip, hw detection frames median **140–159 ms vs 121–122 ms** normally; other frames 18.0 vs 14.9 ms (+16–30%) | The light load that offloading creates lets `ondemand` lower the clock, and frames that start during a dip run slower: an energy-saving vs. timing-outlier trade-off (links RQ1 and RQ2). Association at ~0.5 s sampling, not yet causal: test hw at 15 fps under `performance` vs `ondemand` |
+| 2026-11-07 | **First energy result: wall meter, equal work** (`20261107T130959`, readings in `wall_power.txt`) | 15 fps, N = 10, 120 s × (sw hw hw sw), fan on; AC wall meter read by eye | **Idle 3.6 W. sw ≈ 6.3 W (runs 6.2–6.5, 6.1–6.4); hw ≈ 5.3 W (4.7–5.6, 5.4–5.6).** Both sw runs above both hw runs. Per frame: sw ≈ 0.42 J total / 0.18 J above idle; hw ≈ 0.35 J / 0.11 J | **H1a supported with first energy numbers:** CPU −52%, but power added above idle only ≈ −37%, and total energy per frame only ≈ −16% because the 3.6 W idle floor is paid in both modes. Wider hw spread consistent with governor clock dips. Limits: manual AC-side readings (charger losses + fan included), ≈ ±0.2–0.3 W; direction robust, magnitude to confirm with a logging meter |
 
 ---
 
 ## Changelog
 
+- **v0.25** (2026-11-07): First energy result (wall meter, equal work): hw −1.0 W, −16% J/frame total, −37% above idle vs. −52% CPU.
 - **v0.24** (2026-11-07): Analysis-script fix (time axis / check window for overloaded runs); governor-dip vs frame-time finding; governor test open item.
 - **v0.23** (2026-11-07): Fan-on reference runs logged (30 and 15 fps, clean); week-one outcome recorded in §7; next items: energy measurement, load sweep, pipeline v2.
 - **v0.22** (2026-11-07): Title, focus and RQ1 reworded for fan-on reference runs (cooling now a condition, not the premise). Cooling decision changed: fan always on for reference runs; passive 30 fps run kept as the no-fan condition; reference re-runs (30 and 15 fps) with fan on as open items.
