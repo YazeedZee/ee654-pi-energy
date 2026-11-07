@@ -11,6 +11,10 @@
 #   DURATION [180]  seconds per run      N   [3]   detect every N frames
 #   REPS     [1]    sw-hw-hw-sw blocks   GAP [60]  seconds idle between runs
 #   SAMPLE   [0.5]  sampler period (s)  FPS [30]  frame release rate (deadline = 1/FPS)
+#   RUNS     [""]   explicit run list instead of REPS x (sw hw hw sw): space-separated
+#                   tokens mode[:governor], e.g. RUNS="hw:ondemand hw:performance hw:performance hw:ondemand".
+#                   A governor is set (sudo) just before its run; the original is restored at exit.
+#                   Run folders are then named run<k>_<mode>-<governor>.
 # Output: data/raw/02_week1_offload/<timestamp>/{sysinfo.txt, clock.csv, run<k>_<mode>/...}
 set -uo pipefail
 
@@ -32,17 +36,34 @@ echo "t,arm_hz,temp_c,throttled" > "$OUT/clock.csv"
     sleep "$SAMPLE"
   done >> "$OUT/clock.csv" ) &
 SAMPLER=$!
-trap 'kill $SAMPLER 2>/dev/null' EXIT
+GOV_FILE=/sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+ORIG_GOV=$(cat $GOV_FILE)
+cleanup() {
+  kill $SAMPLER 2>/dev/null
+  [[ "$(cat $GOV_FILE)" != "$ORIG_GOV" ]] && echo "$ORIG_GOV" | sudo tee $GOV_FILE >/dev/null
+}
+trap cleanup EXIT
 
 k=0
 ORDER=()
-for ((r = 0; r < REPS; r++)); do ORDER+=(sw hw hw sw); done
-for mode in "${ORDER[@]}"; do
+if [[ -n "${RUNS:-}" ]]; then
+  read -ra ORDER <<< "$RUNS"
+else
+  for ((r = 0; r < REPS; r++)); do ORDER+=(sw hw hw sw); done
+fi
+echo "runs=${ORDER[*]}" >> "$OUT/params.txt"
+for tok in "${ORDER[@]}"; do
   k=$((k + 1))
+  mode=${tok%%:*}; gov=""; [[ "$tok" == *:* ]] && gov=${tok#*:}
   (( k > 1 )) && { echo "-- idle ${GAP}s"; sleep "$GAP"; }
-  echo "== run $k/${#ORDER[@]}: $mode (${DURATION}s, ${FPS} fps, detect every $N)"
+  name="run${k}_${mode}"
+  if [[ -n "$gov" ]]; then
+    echo "$gov" | sudo tee $GOV_FILE >/dev/null || { echo "   cannot set governor $gov"; continue; }
+    name="${name}-${gov}"
+  fi
+  echo "== run $k/${#ORDER[@]}: $mode${gov:+, governor $gov} (${DURATION}s, ${FPS} fps, detect every $N)"
   python3 "$REPO_DIR/pipeline/run_pipeline.py" --input "$INPUT" --mode "$mode" \
-    --duration "$DURATION" --fps "$FPS" --detect-every "$N" --out-dir "$OUT/run${k}_${mode}" \
+    --duration "$DURATION" --fps "$FPS" --detect-every "$N" --out-dir "$OUT/$name" \
     || echo "   run $k FAILED"
 done
 
@@ -51,14 +72,14 @@ python3 - "$OUT" <<'EOF'
 import json, sys, pathlib
 out = pathlib.Path(sys.argv[1])
 cols = ["decode", "to_bgr", "detect", "overlay", "to_yuv", "encode"]
-print(f"{'run':<9}{'fps':>6}{'util':>6}{'miss%':>7}{'svc50':>7}{'svc99':>7}{'cores':>6}{'cpu/f':>7}" + "".join(f"{c:>8}" for c in cols) + f"{'tempC':>13}")
+print(f"{'run':<22}{'fps':>6}{'util':>6}{'miss%':>7}{'svc50':>7}{'svc99':>7}{'cores':>6}{'cpu/f':>7}" + "".join(f"{c:>8}" for c in cols) + f"{'tempC':>13}")
 for d in sorted(p for p in out.iterdir() if p.is_dir()):
     f = d / "summary.json"
     if not f.exists():
-        print(f"{d.name:<9} (no summary)"); continue
+        print(f"{d.name:<22} (no summary)"); continue
     s = json.load(open(f)); st = s["stages"]
     sv = s["service_ms"]
-    print(f"{d.name:<9}{s['achieved_fps']:>6.1f}{s['utilization']:>6.2f}{100*s['miss_ratio']:>7.1f}{sv['p50']:>7.1f}{sv['p99']:>7.1f}"
+    print(f"{d.name:<22}{s['achieved_fps']:>6.1f}{s['utilization']:>6.2f}{100*s['miss_ratio']:>7.1f}{sv['p50']:>7.1f}{sv['p99']:>7.1f}"
           f"{s['cpu_cores_used']:>6.2f}{s['cpu_ms_per_frame']:>7.1f}" + "".join(f"{(st[c]['mean_ms'] or 0):>8.1f}" for c in cols)
           + f"{str(round(s['temp_c']['start'] or 0, 1)) + '->' + str(round(s['temp_c']['end'] or 0, 1)):>13}")
 EOF

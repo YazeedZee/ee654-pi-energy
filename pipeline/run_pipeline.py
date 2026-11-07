@@ -48,6 +48,7 @@ VOC_CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat", "bottle", "
 PERSON = VOC_CLASSES.index("person")
 TEMP_PATH = "/sys/class/thermal/thermal_zone0/temp"
 FREQ_PATH = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"
+GOV_PATH = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
 CODECS = {"sw": ("h264", "libx264"), "hw": ("h264_v4l2m2m", "h264_v4l2m2m")}
 
 
@@ -254,7 +255,8 @@ def main():
         "config": {**vars(a), "decoder": dec_name, "encoder": enc_name, "width": w, "height": h,
                    "input_codec": params["codec"], "input_packets": len(packets)},
         "versions": {"python": platform.python_version(), "pyav": av.__version__, "opencv": cv2.__version__,
-                     "opencv_threads": cv2.getNumThreads(), "host": platform.node(), "kernel": platform.release()},
+                     "opencv_threads": cv2.getNumThreads(), "host": platform.node(), "kernel": platform.release(),
+                     "governor": open(GOV_PATH).read().strip() if os.path.exists(GOV_PATH) else None},
         "frames": n_frames,
         "frames_in_stats": int(len(keep)),
         "elapsed_s": elapsed,

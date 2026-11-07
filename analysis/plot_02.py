@@ -33,7 +33,7 @@ def main(run_dir):
 
     fig, axes = plt.subplots(3, len(runs), figsize=(4.2 * len(runs), 8.5), sharey="row", squeeze=False)
     for col, rd in enumerate(runs):
-        mode = rd.name.split("_")[-1]
+        mode = rd.name.split("_")[-1].split("-")[0]      # run3_hw-performance -> hw
         f = pd.read_csv(rd / "frames.csv")
         s = json.load(open(rd / "summary.json"))
         t0 = f["release_wall_s"].iloc[0]

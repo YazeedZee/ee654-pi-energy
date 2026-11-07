@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.25)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.26)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -223,7 +223,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 - [x] Reference runs on the verified supply (2026-11-06/07): 30 fps clean; 15 fps clean for CPU, temperature invalid (airflow changed).
 - [x] Reference runs with fan on (2026-11-07): 30 fps `20261107T001714`, 15 fps `20261107T003226`; both clean.
 - [x] Interim energy result with the wall meter (2026-11-07, `20261107T130959/wall_power.txt`): hw ≈ −1.0 W, −16% J/frame total, −37% above idle.
-- [ ] **Logging power meter** (USB-C logger or INA226 + STM32) to confirm the energy magnitudes with recorded traces and per-frame energy.
+- [x] Power-meter decision (2026-11-07): **no logging meter will be bought**; energy evidence = AC wall meter read by eye, reported as approximate (direction robust, magnitude ±0.2–0.3 W per reading). Optional zero-cost improvement: film the meter display during runs and transcribe readings at fixed intervals for means and confidence intervals.
 - [ ] Governor test (RQ2 link): hw at 15 fps under `performance` vs `ondemand`; do the timing outliers disappear, and at what energy cost?
 - [ ] Detector load sweep N ∈ {1, 3, 10} at 15 fps (fan on).
 - [ ] Pipeline v2: detection on its own thread, so the deadline-miss ratio reflects the frame path rather than queueing behind inline detection.
@@ -279,6 +279,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 
 ## Changelog
 
+- **v0.26** (2026-11-07): Decision: no logging power meter; wall-meter evidence framed as approximate. Exp 02 script: per-run mode/governor list (RUNS) for the governor test.
 - **v0.25** (2026-11-07): First energy result (wall meter, equal work): hw −1.0 W, −16% J/frame total, −37% above idle vs. −52% CPU.
 - **v0.24** (2026-11-07): Analysis-script fix (time axis / check window for overloaded runs); governor-dip vs frame-time finding; governor test open item.
 - **v0.23** (2026-11-07): Fan-on reference runs logged (30 and 15 fps, clean); week-one outcome recorded in §7; next items: energy measurement, load sweep, pipeline v2.
