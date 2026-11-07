@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.28)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.29)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -173,6 +173,12 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 
 ---
 
+## 6.6 Scheduling study (pipeline v2, RQ3 reframed)
+
+Two periodic tasks on one core, rate-monotonic priorities: τ_frame (C_f, T = 1/fps, D = T) above τ_det (C_d, T = N/fps, D = T). Predictions from measured C (mean / p99 / max): U = C_f/T_f + C_d/T_d vs. the Liu & Layland bound 0.828 (sufficient test); exact RTA R_det = C_d + ⌈R/T_f⌉·C_f. Measured: frame miss ratio, detection response times and misses, skipped detection jobs. Comparison: CFS vs. SCHED_FIFO (RM) in sw and hw mode. Model caveats to discuss: hw frame task self-suspends while waiting for the video hardware; Python's GIL is a shared lock (blocking term B); C_max over a run is an observed maximum, not a guaranteed WCET.
+
+---
+
 ## 7. Week-one feasibility test
 
 **Goal:** confirm the main question has a measurable effect before building everything.
@@ -226,7 +232,8 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 - [x] Power-meter decision (2026-11-07): **no logging meter will be bought**; energy evidence = AC wall meter read by eye, reported as approximate (direction robust, magnitude ±0.2–0.3 W per reading). Optional zero-cost improvement: film the meter display during runs and transcribe readings at fixed intervals for means and confidence intervals.
 - [x] Governor test (2026-11-07, `20261107T134531`): no measurable power difference; performance removes clock dips and all >145 ms hw detection frames (causal).
 - [ ] Detector load sweep N ∈ {1, 3, 10} at 15 fps (fan on).
-- [ ] Pipeline v2: detection on its own thread, so the deadline-miss ratio reflects the frame path rather than queueing behind inline detection.
+- [x] Pipeline v2 built (2026-11-07): `pipeline/run_pipeline_v2.py`, experiment `04_rms.sh`. Two periodic tasks on **one core** (core 3, single-threaded codecs and OpenCV) so uniprocessor theory applies: frame task (T = 1/fps) above detect task (T = N/fps) by rate-monotonic order. CFS vs. SCHED_FIFO RM priorities; C measured per job from thread CPU time; Liu & Layland test and RTA computed per run and compared with measured responses/misses. Frame-path colour conversion uses libswscale on a bulk copy (keeps the frame task out of OpenCV's shared thread pool).
+- [ ] Run experiment 04 (sw/hw × cfs/rms). Expected: hw schedulable, sw frame task alone may exceed its period on one core (unschedulable); rms keeps frame misses near zero where analysis says schedulable; RTA bounds measured detection response under rms. Watch R_frame − C_frame for blocking (GIL: possible priority inversion).
 - [ ] Cooling comparison: the clean passive 30 fps run (`20261106T233239`) serves as the **no-fan** condition against the fan-on reference; blower comparison still later.
 - [ ] Note in each run's record: board position and whether the PC was in use.
 - [ ] Cooling bracket: repeat exp 01 (5 min) with case off, then with an electric air blower at fixed position/speed; compare with the case-on run (85.7 °C, throttled to 600 MHz).
@@ -281,6 +288,7 @@ Not every combination will be run. RQ1 varies codec placement × run length with
 
 ## Changelog
 
+- **v0.29** (2026-11-07): Pipeline v2 (two-task RM on one core) and experiment 04; §6.6 scheduling study.
 - **v0.28** (2026-11-07): Governor tall-frame count: performance eliminates the >145 ms hw frames (causal link to ondemand dips).
 - **v0.27** (2026-11-07): Governor test result (ondemand ≈ performance in power; performance removes dips); meter aliasing note.
 - **v0.26** (2026-11-07): Decision: no logging power meter; wall-meter evidence framed as approximate. Exp 02 script: per-run mode/governor list (RUNS) for the governor test.

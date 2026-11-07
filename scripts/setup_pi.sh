@@ -33,6 +33,10 @@ if [[ "${1:-}" == "--upgrade" ]]; then
 fi
 apt-get install -y ffmpeg git rsync stress-ng htop python3-numpy python3-pandas python3-av python3-opencv
 
+echo "== allow real-time priorities (SCHED_FIFO) for $USER_NAME (pipeline v2 --sched rms)"
+echo "$USER_NAME - rtprio 90" > /etc/security/limits.d/90-ee654-rtprio.conf
+echo "   takes effect at next login (check: ulimit -r -> 90)"
+
 echo "== freeze bootloader firmware updates for the study"
 apt-mark hold rpi-eeprom
 

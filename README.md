@@ -1,4 +1,4 @@
-# EE654 Pi Energy Study (v0.4)
+# EE654 Pi Energy Study (v0.5)
 
 **Energy vs. deadlines in a soft real-time video pipeline on the Raspberry Pi 4.**
 Course project for EE654 Embedded and Real-Time Systems (Fall 2026).
@@ -43,7 +43,8 @@ The research plan (questions, hypotheses, experimental design, platform record) 
 | 00 | `experiments/00_codec_check.sh` | Confirm H.264 hardware encode/decode works; first HW vs. SW comparison (no power data) | done 2026-11-06 |
 | 01 | `experiments/01_thermal_soak.sh` | 10 min all-core load: does passive cooling throttle? | done 2026-11-06 (ad-hoc; script added after) |
 | 02 | `experiments/02_week1_offload.sh` | Week-one test: pipeline v1 in sw vs. hw mode, sustained, with clock trace | smoke tests done; both modes overloaded at N = 3 |
-| 03 | `experiments/03_frame_access.py` | Why reading hardware-decoded frames is slow: raw copy vs. conversion | ready to run |
+| 03 | `experiments/03_frame_access.py` | Why reading hardware-decoded frames is slow: raw copy vs. conversion | done 2026-11-06 |
+| 04 | `experiments/04_rms.sh` | Pipeline v2: two-task rate-monotonic system on one core; CFS vs. RM priorities; analysis vs. measurement | ready to run |
 
 ## Pipeline v1
 
@@ -60,6 +61,17 @@ sudo ./scripts/setup_pi.sh        # installs python3-av, python3-opencv
 ./scripts/fetch_inputs.sh         # Xiph clips -> data/inputs/*.mp4
 ```
 
+## Pipeline v2
+
+`pipeline/run_pipeline_v2.py`: two periodic tasks. Frame task (decode → to_bgr → overlay → to_yuv → encode,
+period 1/fps) and detect task (MobileNet-SSD, period N/fps), with rate-monotonic priorities (`--sched rms`:
+SCHED_FIFO 80 / 70) or normal Linux scheduling (`--sched cfs`). `--cores 3` pins everything to one core so
+the uniprocessor analysis (Liu & Layland bound, response-time analysis) applies; per-job execution time is
+measured from thread CPU time. Writes `frames.csv`, `detect.csv`, `summary.json` (with the analysis).
+Needs rtprio permission: `sudo ./scripts/setup_pi.sh`, then log in again.
+
+Plots are generated on the PC only (never on the Pi), so the two machines never commit the same file.
+
 ## Conventions
 
 - README title carries a version number; bump it on every edit.
@@ -68,6 +80,7 @@ sudo ./scripts/setup_pi.sh        # installs python3-av, python3-opencv
 
 ## Changelog
 
+- **v0.5** (2026-11-07): Pipeline v2 (two-task RM), experiment 04, rtprio in setup; plots-on-PC rule.
 - **v0.4** (2026-11-06): Experiment 03 (frame-access diagnostic); runner reports service time and utilization, runs bounded by wall-clock time.
 - **v0.3** (2026-11-06): Pipeline v1, experiment 02 (week-one offload test), experiment 01 script, model/input fetch scripts, plot script; setup installs PyAV and OpenCV.
 - **v0.2** (2026-11-06): Experiment 00 fixes: fps from frames / wall time (ffmpeg reports 0 for runs under 1 s), `gen_only` baseline so encoder CPU can be separated from test-pattern generation, logs the V4L2 device used.
