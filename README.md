@@ -1,4 +1,4 @@
-# EE654 Pi Energy Study (v0.5)
+# EE654 Pi Energy Study (v0.6)
 
 **Energy vs. deadlines in a soft real-time video pipeline on the Raspberry Pi 4.**
 Course project for EE654 Embedded and Real-Time Systems (Fall 2026).
@@ -44,7 +44,9 @@ The research plan (questions, hypotheses, experimental design, platform record) 
 | 01 | `experiments/01_thermal_soak.sh` | 10 min all-core load: does passive cooling throttle? | done 2026-11-06 (ad-hoc; script added after) |
 | 02 | `experiments/02_week1_offload.sh` | Week-one test: pipeline v1 in sw vs. hw mode, sustained, with clock trace | smoke tests done; both modes overloaded at N = 3 |
 | 03 | `experiments/03_frame_access.py` | Why reading hardware-decoded frames is slow: raw copy vs. conversion | done 2026-11-06 |
-| 04 | `experiments/04_rms.sh` | Pipeline v2: two-task rate-monotonic system on one core; CFS vs. RM priorities; analysis vs. measurement | ready to run |
+| 04 | `experiments/04_rms.sh` | Pipeline v2: two-task rate-monotonic system on one core; default policy vs. RM priorities, with/without background load | done 2026-11-10 |
+
+**Paper:** `paper/` (see `paper/README.md`); figures from `analysis/paper_figures.py`.
 
 ## Pipeline v1
 
@@ -80,6 +82,7 @@ Plots are generated on the PC only (never on the Pi), so the two machines never 
 
 ## Changelog
 
+- **v0.6** (2026-11-10): Paper draft (`paper/`), figure script; experiment 04 done.
 - **v0.5** (2026-11-07): Pipeline v2 (two-task RM), experiment 04, rtprio in setup; plots-on-PC rule.
 - **v0.4** (2026-11-06): Experiment 03 (frame-access diagnostic); runner reports service time and utilization, runs bounded by wall-clock time.
 - **v0.3** (2026-11-06): Pipeline v1, experiment 02 (week-one offload test), experiment 01 script, model/input fetch scripts, plot script; setup installs PyAV and OpenCV.

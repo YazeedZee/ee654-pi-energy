@@ -1,4 +1,4 @@
-# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.31)
+# EE654 Project: Energy vs. Deadlines in a Video Pipeline on Raspberry Pi 4 (v0.32)
 
 **Course:** EE654 Embedded and Real-Time Systems, King Abdulaziz University (Fall 2026)
 **Platform:** Raspberry Pi 4
@@ -235,7 +235,8 @@ Two periodic tasks on one core, rate-monotonic priorities: τ_frame (C_f, T = 1/
 - [x] Pipeline v2 built (2026-11-07): `pipeline/run_pipeline_v2.py`, experiment `04_rms.sh`. Two periodic tasks on **one core** (core 3, single-threaded codecs and OpenCV) so uniprocessor theory applies: frame task (T = 1/fps) above detect task (T = N/fps) by rate-monotonic order. CFS vs. SCHED_FIFO RM priorities; C measured per job from thread CPU time; Liu & Layland test and RTA computed per run and compared with measured responses/misses. Frame-path colour conversion uses libswscale on a bulk copy (keeps the frame task out of OpenCV's shared thread pool).
 - [x] Experiment 04 (2026-11-10, `20261110T202628`): hw schedulable and analysis holds; sw unschedulable on one core; RM vs SCHED_OTHER identical when schedulable, opposite failure modes under overload.
 - [x] Experiment 04 with background load (2026-11-10, `20261110T204647`): RM unaffected; SCHED_OTHER 100% frame misses, 40% detection jobs lost. Scheduling section complete.
-- [ ] **Write the paper** (IEEE format, LaTeX, `paper/`): lead findings = frame-access trap (exp 03), governor causes tail with no energy return, offloading decides schedulability on one core, RM needed to make the analysis hold under co-running load.
+- [x] Paper first draft (2026-11-10): `paper/main.tex`, figures from `analysis/paper_figures.py`. Pending: author review, author details, final IEEEtran build (Overleaf or texlive-publishers).
+- [ ] ~~Write the paper~~ (IEEE format, LaTeX, `paper/`): lead findings = frame-access trap (exp 03), governor causes tail with no energy return, offloading decides schedulability on one core, RM needed to make the analysis hold under co-running load.
 - [ ] Before making the repo public: license, README clean-up, commit-email decision.
 - [ ] LinkedIn post (after the paper).
 - [ ] Terminology: label the default policy SCHED_OTHER (EEVDF on kernel 6.18), not CFS, in the paper.
@@ -295,6 +296,7 @@ Two periodic tasks on one core, rate-monotonic priorities: τ_frame (C_f, T = 1/
 
 ## Changelog
 
+- **v0.32** (2026-11-10): Paper first draft written.
 - **v0.31** (2026-11-10): Exp 04 background-load result (RM protects the analysed task set; SCHED_OTHER fails); experiments complete; writing items.
 - **v0.30** (2026-11-10): Exp 04 results (offloading decides schedulability on one core; RTA holds; RM ≈ SCHED_OTHER when schedulable, opposite failures under overload); background-load option; EEVDF terminology.
 - **v0.29** (2026-11-07): Pipeline v2 (two-task RM on one core) and experiment 04; §6.6 scheduling study.
