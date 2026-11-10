@@ -1,0 +1,8 @@
+input=/home/raspberry/ee654-pi-energy/data/inputs/pedestrian_area_720p30.mp4
+runs=hw:rms hw:cfs sw:cfs sw:rms sw:rms sw:cfs hw:cfs hw:rms
+duration=90
+fps=15
+detect_every=10
+cores=3
+gap=30
+input_sha256=4848d4353d9fcc564aa64123d85c4d528150194f8931b21d5a74ec3afde60c07
