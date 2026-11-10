@@ -114,12 +114,12 @@ class Mailbox:
         self.cond = threading.Condition()
         self.slot = None
         self.stop = False
-        self.skipped = 0
+        self.skipped = []                  # frame indices of overwritten (never started) jobs
 
     def put(self, item):
         with self.cond:
             if self.slot is not None:
-                self.skipped += 1          # previous job never started: overwritten
+                self.skipped.append(self.slot[0])   # previous job never started: overwritten
             self.slot = item
             self.cond.notify()
 
@@ -297,7 +297,7 @@ def main():
                        "service_ms": stats(fr[:, 2]), "cpu_ms": stats(c_f),
                        "wall_minus_cpu_ms": stats(fr[:, 2] - fr[:, 3])},
         "detect_task": {"jobs_released": jobs_released, "jobs_completed": int(len(dr)),
-                        "jobs_skipped": mailbox.skipped,
+                        "jobs_skipped": sum(1 for s in mailbox.skipped if s >= warm_f),
                         "miss_ratio": float(dr[:, 4].mean()) if len(dr) else None,
                         "cpu_ms": stats(c_d), "response_ms": stats(dr[:, 3] if len(dr) else []),
                         "start_delay_ms": stats(dr[:, 0] if len(dr) else [])},
