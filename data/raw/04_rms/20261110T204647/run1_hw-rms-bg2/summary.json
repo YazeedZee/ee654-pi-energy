@@ -1,0 +1,139 @@
+{
+  "config": {
+    "input": "/home/raspberry/ee654-pi-energy/data/inputs/pedestrian_area_720p30.mp4",
+    "mode": "hw",
+    "sched": "rms",
+    "duration": 90.0,
+    "fps": 15.0,
+    "detect_every": 10,
+    "cores": "3",
+    "cv_threads": 1,
+    "codec_threads": 1,
+    "conf": 0.5,
+    "bitrate": 4000000,
+    "warmup": 3.0,
+    "model_dir": "/home/raspberry/ee654-pi-energy/pipeline/models",
+    "out_dir": "/home/raspberry/ee654-pi-energy/data/raw/04_rms/20261110T204647/run1_hw-rms-bg2",
+    "decoder": "h264_v4l2m2m",
+    "encoder": "h264_v4l2m2m",
+    "width": 1280,
+    "height": 720,
+    "cores_list": [
+      3
+    ],
+    "prio_frame": 80,
+    "prio_detect": 70
+  },
+  "versions": {
+    "python": "3.13.5",
+    "pyav": "14.2.0",
+    "opencv": "4.10.0",
+    "host": "raspberry",
+    "kernel": "6.18.60+rpt-rpi-v8",
+    "governor": "ondemand"
+  },
+  "elapsed_s": 90.02071923200015,
+  "frames": 1351,
+  "achieved_fps": 15.007656143228777,
+  "frame_task": {
+    "miss_ratio": 0.0,
+    "latency_ms": {
+      "n": 1306,
+      "mean": 19.30796248085758,
+      "p50": 19.125,
+      "p99": 23.052599999999998,
+      "max": 24.067
+    },
+    "service_ms": {
+      "n": 1306,
+      "mean": 19.269557427258807,
+      "p50": 19.083,
+      "p99": 23.0014,
+      "max": 24.031
+    },
+    "cpu_ms": {
+      "n": 1306,
+      "mean": 19.270859877488512,
+      "p50": 19.084,
+      "p99": 23.0024,
+      "max": 24.031
+    },
+    "wall_minus_cpu_ms": {
+      "n": 1306,
+      "mean": -0.0013024502297090139,
+      "p50": -0.0009999999999994458,
+      "p99": 0.0019999999999988916,
+      "max": 0.0030000000000001137
+    }
+  },
+  "detect_task": {
+    "jobs_released": 131,
+    "jobs_completed": 131,
+    "jobs_skipped": 0,
+    "miss_ratio": 0.0,
+    "cpu_ms": {
+      "n": 131,
+      "mean": 302.8356183206107,
+      "p50": 302.922,
+      "p99": 304.5309,
+      "max": 305.153
+    },
+    "response_ms": {
+      "n": 131,
+      "mean": 440.3765496183206,
+      "p50": 441.19,
+      "p99": 445.16839999999996,
+      "max": 445.329
+    },
+    "start_delay_ms": {
+      "n": 131,
+      "mean": 20.733282442748095,
+      "p50": 20.565,
+      "p99": 23.279,
+      "max": 23.381
+    }
+  },
+  "analysis": {
+    "period_ms": 66.66666666666667,
+    "detect_period_ms": 666.6666666666666,
+    "uniprocessor": true,
+    "ll_bound_2_tasks": 0.8284271247461903,
+    "using_C_mean": {
+      "C_frame_ms": 19.270859877488512,
+      "C_detect_ms": 302.8356183206107,
+      "U": 0.7433163256432438,
+      "U_frame": 0.28906289816232766,
+      "ll_test_passes": true,
+      "rta_frame_R_ms": 19.270859877488512,
+      "rta_frame_ok": true,
+      "rta_detect_R_ms": 437.7316374630303,
+      "rta_detect_ok": true
+    },
+    "using_C_max": {
+      "C_frame_ms": 24.031,
+      "C_detect_ms": 305.153,
+      "U": 0.8181945,
+      "U_frame": 0.360465,
+      "ll_test_passes": true,
+      "rta_frame_R_ms": 24.031,
+      "rta_frame_ok": true,
+      "rta_detect_R_ms": 497.401,
+      "rta_detect_ok": true
+    },
+    "using_C_p99": {
+      "C_frame_ms": 23.0024,
+      "C_detect_ms": 304.5309,
+      "U": 0.80183235,
+      "U_frame": 0.345036,
+      "ll_test_passes": true,
+      "rta_frame_R_ms": 23.0024,
+      "rta_frame_ok": true,
+      "rta_detect_R_ms": 465.54769999999996,
+      "rta_detect_ok": true
+    }
+  },
+  "temp_c": {
+    "start": 33.589,
+    "end": 38.459
+  }
+}
