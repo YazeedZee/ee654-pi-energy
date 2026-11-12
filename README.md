@@ -1,7 +1,6 @@
-# EE654 Pi Energy Study (v1.0)
+# Is Hardware Offload Enough? Raspberry Pi 4 Video Pipeline Study (v1.1)
 
 **Energy vs. deadlines in a soft real-time video pipeline on the Raspberry Pi 4.**
-Course project for EE654 Embedded and Real-Time Systems (Fall 2026).
 
 ## Paper
 
@@ -108,6 +107,7 @@ Plots are generated on the PC only (never on the Pi), so the two machines never 
 
 ## Changelog
 
+- **v1.1** (2026-11-12): Title without the course name.
 - **v1.0** (2026-11-12): Paper published as a preprint on Zenodo, doi:10.5281/zenodo.24166003; code and data archive doi:10.5281/zenodo.24165559; author ORCID.
 - **v0.9** (2026-11-12): Release preparation: paper section, licenses (MIT code; CC BY 4.0 data, docs, paper), CITATION.cff, publishing guide (`docs/publishing.md`), preprint metadata (`paper/preprint_metadata.md`).
 - **v0.8** (2026-11-11): Run manifest; audit sections H–K (encoder output lag, wall-clock staleness, replicates, per-frame frequency); paper draft v3.
