@@ -17,6 +17,10 @@ keywords:
   - DVFS
   - rate-monotonic scheduling
   - Raspberry Pi
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24166003"
+    description: "The paper (preprint on Zenodo)"
 preferred-citation:
   type: article
   title: "Is Hardware Offload Enough? Energy, Timing, and Scheduling of a Video Analytics Pipeline on the Raspberry Pi 4"
@@ -24,4 +28,8 @@ preferred-citation:
     - family-names: Alzughaibi
       given-names: Yazeed
   year: 2026
-  notes: "Preprint. Add the Zenodo DOI once it is assigned."
+  doi: "10.5281/zenodo.24166003"
+  url: "https://doi.org/10.5281/zenodo.24166003"
+  publisher:
+    name: Zenodo
+  notes: "Preprint"

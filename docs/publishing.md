@@ -61,7 +61,7 @@ git config user.email "yazeedmalzughaibi@gmail.com"
 
 **4a. Code and data (automatic).** Turn the repository on under Zenodo → GitHub integration **before** creating the `paper-v1` release in step 3. Zenodo archives the release and gives it a DOI (resource type *Software*). Its metadata comes from `CITATION.cff`.
 
-**4b. The paper (manual upload).** Zenodo → New upload:
+**4b. The paper (manual upload). Done 2026-11-12: [doi:10.5281/zenodo.24166003](https://doi.org/10.5281/zenodo.24166003).** Zenodo → New upload:
 
 - **Files:** `paper/paper_final.pdf` only.
 - **Resource type:** Publication → Preprint.
