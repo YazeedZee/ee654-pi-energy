@@ -6,7 +6,7 @@ Course project for EE654 Embedded and Real-Time Systems (Fall 2026).
 ## Paper
 
 **Is Hardware Offload Enough? Energy, Timing, and Scheduling of a Video Analytics Pipeline on the Raspberry Pi 4**
-Yazeed Alzughaibi, King Abdulaziz University, 2026. PDF: [`paper/paper_final.pdf`](paper/paper_final.pdf) (arXiv link to follow).
+Yazeed Alzughaibi, King Abdulaziz University, 2026. PDF: [`paper/paper_final.pdf`](paper/paper_final.pdf) (TechRxiv DOI to follow).
 
 A 720p decode–detect–overlay–encode pipeline with a person detector, in a software and a hardware codec version:
 
@@ -106,7 +106,7 @@ Plots are generated on the PC only (never on the Pi), so the two machines never 
 
 ## Changelog
 
-- **v0.9** (2026-11-12): Release preparation: paper section, licenses (MIT code; CC BY 4.0 data, docs, paper), CITATION.cff, publishing guide (`docs/publishing.md`), arXiv metadata (`paper/arxiv_metadata.md`).
+- **v0.9** (2026-11-12): Release preparation: paper section, licenses (MIT code; CC BY 4.0 data, docs, paper), CITATION.cff, publishing guide (`docs/publishing.md`), preprint metadata (`paper/preprint_metadata.md`).
 - **v0.8** (2026-11-11): Run manifest; audit sections H–K (encoder output lag, wall-clock staleness, replicates, per-frame frequency); paper draft v3.
 - **v0.7** (2026-11-11): Review audit script and response; paper draft v2; `run_pipeline_v2.py` counts handed-over detection jobs correctly (earlier `summary.json` files keep the old count, off by one in one run).
 - **v0.6** (2026-11-10): Paper draft (`paper/`), figure script; experiment 04 done.

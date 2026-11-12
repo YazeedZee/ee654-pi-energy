@@ -1,10 +1,10 @@
-# Publishing checklist: repository, arXiv, LinkedIn
+# Publishing checklist: repository, TechRxiv, LinkedIn
 
 Order matters: the paper says the code and data "are available at" the GitHub URL, so the repository must be public **before** the PDF goes anywhere.
 
 ## 0. Before anything (decisions only you can make)
 
-- [ ] **Course and instructor.** Ask your EE654 instructor whether posting the course paper publicly before grading is fine. Also ask whether they would endorse you on arXiv (step 4). Check the course's policy on AI assistance against the paper's acknowledgment.
+- [x] **Route decided (2026-11-12):** a personal preprint on TechRxiv, with no instructor involvement and no arXiv (arXiv would need an endorser). Code and data get their own DOI through Zenodo.
 - [ ] **Affiliation.** Listing King Abdulaziz University on a preprint is normal for a student; check with your department if unsure.
 
 ## 1. Clean the working copy (PC)
@@ -52,30 +52,26 @@ git config user.email "yazeedmalzughaibi@gmail.com"
   Then GitHub → Releases → *Draft a new release* → tag `paper-v1` → attach `paper/paper_final.pdf` → Publish.
 - [ ] Open the repo in a private browser window (logged out) and check that the README, `paper/paper_final.pdf` and `docs/run_manifest.md` are visible.
 
-## 4. arXiv
+## 4. TechRxiv (the paper)
 
-1. **Account:** register at arxiv.org with the email in the paper.
-2. **Endorsement:** since January 2026 an institutional email alone does not qualify. On the submission page, arXiv shows an endorsement code when you first submit to a category; send it to someone who has published in that category (your instructor or another KAU faculty member is the natural choice). The category you choose decides who can endorse, so ask first and pick the category accordingly (cs.PF or cs.OS; see `paper/arxiv_metadata.md`).
-3. **Source package** (arXiv prefers LaTeX source over a PDF):
+TechRxiv is IEEE's preprint server for electrical engineering and computing. It is free and needs no endorsement. A moderator screens each submission (not a peer review), and preprints are usually posted within 4 business days with a DOI. Google Scholar indexes it, and IEEE venues accept papers that were posted there first.
 
-   ```sh
-   cd ~/Documents/Msc/ee654-pi-energy/paper
-   tar czf ee654_arxiv.tar.gz main.tex figs/stages.pdf figs/frame_access.pdf figs/sched_bg.pdf
-   ```
+1. Create an account and start a new submission.
+2. Upload `paper/paper_final.pdf`. Copy the title, abstract and keywords from `paper/preprint_metadata.md`.
+3. License: CC BY 4.0 (matches the repository).
+4. Post the paper **only here**. A second copy on Zenodo or arXiv would give the same paper two DOIs and split its citations.
+5. Once it is posted, add the DOI to `CITATION.cff`, the README's Paper section and the GitHub release notes. Commit and push.
+6. Google Scholar: once the paper shows up in Scholar (usually days to weeks), create a Scholar profile and add it.
 
-   arXiv provides IEEEtran itself; no `.bbl` is needed (the bibliography is inline). The package has been test-built from a clean directory: 6 pages, no errors.
-4. **Form:** copy title, abstract, comments, categories and license from `paper/arxiv_metadata.md`.
-5. **Check arXiv's preview PDF** before confirming: same 6 pages, figures present, the repository URL works.
-6. **Timing:** submissions before 14:00 US Eastern (22:00 Riyadh) on a weekday are announced that evening at 20:00 Eastern (04:00 Riyadh the next morning). Moderation can add a day or two for a first submission.
-7. **After it appears:** add the arXiv ID to `CITATION.cff` (`identifiers:`), the README's Paper section, and the GitHub release notes. Commit and push.
+## 4b. Zenodo (the code and data, optional)
 
-Rules worth knowing (2025–26): arXiv bans authors for a year when a paper shows unvetted AI output, such as hallucinated references or leftover chatbot text. All 17 references in this paper were checked against their sources on 2026-11-11/12. Authors bear full responsibility for content however it was produced.
+Turn on the repository under Zenodo → GitHub integration **before** creating the `paper-v1` release in step 3. Zenodo then archives that release with its own DOI, which is a permanent snapshot of the code and logs even if GitHub changes.
 
 ## 5. LinkedIn
 
-Post **after** the arXiv link is live, so the post links to a stable, public page. Drafts are in the conversation; replace the two link placeholders. A figure helps the post: Table III or Fig. 4 from the paper, or the pipeline diagram (Fig. 1), exported as an image.
+Post **after** the TechRxiv preprint is live, and link its DOI page. The drafts are in the conversation; replace "[arXiv link]" with the TechRxiv link and "[GitHub link]" with the repository. A figure helps the post: Table III or Fig. 4 from the paper, or the pipeline diagram (Fig. 1), exported as an image.
 
 ## 6. Later, if you submit to a peer-reviewed venue
 
-- IEEE permits posting the preprint on arXiv. On acceptance, update the arXiv version with the journal reference and follow IEEE's rules for the accepted version.
+- IEEE accepts papers previously posted on TechRxiv. On acceptance, link the published version from the TechRxiv record and follow the venue's rules for the accepted version.
 - Run the final PDF through IEEE PDF eXpress for that venue.
