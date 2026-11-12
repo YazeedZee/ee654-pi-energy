@@ -1,6 +1,6 @@
-# Preprint submission metadata (TechRxiv)
+# Preprint submission metadata (Zenodo)
 
-Paste these fields into the TechRxiv submission form; upload `paper/paper_final.pdf`. See `docs/publishing.md`, step 4.
+Paste these fields into the Zenodo upload form (resource type: Publication → Preprint); upload `paper/paper_final.pdf`. See `docs/publishing.md`, step 4.
 
 **Title**
 Is Hardware Offload Enough? Energy, Timing, and Scheduling of a Video Analytics Pipeline on the Raspberry Pi 4

@@ -1,10 +1,15 @@
-# Publishing checklist: repository, TechRxiv, LinkedIn
+# Publishing checklist: repository, Zenodo, LinkedIn
 
 Order matters: the paper says the code and data "are available at" the GitHub URL, so the repository must be public **before** the PDF goes anywhere.
 
 ## 0. Before anything (decisions only you can make)
 
-- [x] **Route decided (2026-11-12):** a personal preprint on TechRxiv, with no instructor involvement and no arXiv (arXiv would need an endorser). Code and data get their own DOI through Zenodo.
+- [x] **Route decided (2026-11-12):** a personal preprint on **Zenodo**, with no instructor involvement. Ruled out:
+  - arXiv: needs an endorser.
+  - TechRxiv: submissions are closed while it moves to a new platform, with no reopening date.
+  - engrXiv: its AI policy forbids generated text used verbatim, and this paper's prose was AI-drafted and then revised.
+
+  Code and data get their own Zenodo DOI from the GitHub release.
 - [ ] **Affiliation.** Listing King Abdulaziz University on a preprint is normal for a student; check with your department if unsure.
 
 ## 1. Clean the working copy (PC)
@@ -52,26 +57,33 @@ git config user.email "yazeedmalzughaibi@gmail.com"
   Then GitHub → Releases → *Draft a new release* → tag `paper-v1` → attach `paper/paper_final.pdf` → Publish.
 - [ ] Open the repo in a private browser window (logged out) and check that the README, `paper/paper_final.pdf` and `docs/run_manifest.md` are visible.
 
-## 4. TechRxiv (the paper)
+## 4. Zenodo (code and data first, then the paper)
 
-TechRxiv is IEEE's preprint server for electrical engineering and computing. It is free and needs no endorsement. A moderator screens each submission (not a peer review), and preprints are usually posted within 4 business days with a DOI. Google Scholar indexes it, and IEEE venues accept papers that were posted there first.
+**4a. Code and data (automatic).** Turn the repository on under Zenodo → GitHub integration **before** creating the `paper-v1` release in step 3. Zenodo archives the release and gives it a DOI (resource type *Software*). Its metadata comes from `CITATION.cff`.
 
-1. Create an account and start a new submission.
-2. Upload `paper/paper_final.pdf`. Copy the title, abstract and keywords from `paper/preprint_metadata.md`.
-3. License: CC BY 4.0 (matches the repository).
-4. Post the paper **only here**. A second copy on Zenodo or arXiv would give the same paper two DOIs and split its citations.
-5. Once it is posted, add the DOI to `CITATION.cff`, the README's Paper section and the GitHub release notes. Commit and push.
-6. Google Scholar: once the paper shows up in Scholar (usually days to weeks), create a Scholar profile and add it.
+**4b. The paper (manual upload).** Zenodo → New upload:
 
-## 4b. Zenodo (the code and data, optional)
+- **Files:** `paper/paper_final.pdf` only.
+- **Resource type:** Publication → Preprint.
+- **Title, description (the abstract), keywords:** from `paper/preprint_metadata.md`.
+- **Creator:** Yazeed Alzughaibi, with your ORCID and the affiliation King Abdulaziz University.
+- **License:** CC BY 4.0.
+- **Related works:** "Is supplemented by" → the software DOI from 4a, plus the GitHub URL.
+- **Publication date:** the upload date.
 
-Turn on the repository under Zenodo → GitHub integration **before** creating the `paper-v1` release in step 3. Zenodo then archives that release with its own DOI, which is a permanent snapshot of the code and logs even if GitHub changes.
+Check everything before clicking Publish. A published record cannot be edited away or deleted, only versioned (each new version gets its own DOI under one "concept" DOI). There is no moderation, so the DOI is live immediately.
+
+**Post the paper in one place only.** If TechRxiv reopens later, do not post it there as well: two DOIs for one paper split its citations.
+
+**4c. After publishing:** add both DOIs to `CITATION.cff`, to the README's Paper section and to the GitHub release notes. Commit and push.
+
+**4d. Google Scholar:** once the paper is indexed (days to weeks), create a Scholar profile and add the paper. Until then, use "Add article manually". **ORCID:** Add works → Search & link → DataCite, and pick the Zenodo record.
 
 ## 5. LinkedIn
 
-Post **after** the TechRxiv preprint is live, and link its DOI page. The drafts are in the conversation; replace "[arXiv link]" with the TechRxiv link and "[GitHub link]" with the repository. A figure helps the post: Table III or Fig. 4 from the paper, or the pipeline diagram (Fig. 1), exported as an image.
+Post **after** the Zenodo record is live, and link its DOI (https://doi.org/10.5281/zenodo.NNNNNNN). The drafts are in the conversation; replace "[arXiv link]" with the DOI link and "[GitHub link]" with the repository. A figure helps the post: Table III or Fig. 4 from the paper, or the pipeline diagram (Fig. 1), exported as an image.
 
 ## 6. Later, if you submit to a peer-reviewed venue
 
-- IEEE accepts papers previously posted on TechRxiv. On acceptance, link the published version from the TechRxiv record and follow the venue's rules for the accepted version.
+- Check the venue's preprint and AI policies first. Many accept papers already posted on Zenodo, but some require the prose to be the authors' own. On acceptance, add a "Is published in" link to the Zenodo record.
 - Run the final PDF through IEEE PDF eXpress for that venue.

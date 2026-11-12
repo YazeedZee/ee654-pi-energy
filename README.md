@@ -6,7 +6,7 @@ Course project for EE654 Embedded and Real-Time Systems (Fall 2026).
 ## Paper
 
 **Is Hardware Offload Enough? Energy, Timing, and Scheduling of a Video Analytics Pipeline on the Raspberry Pi 4**
-Yazeed Alzughaibi, King Abdulaziz University, 2026. PDF: [`paper/paper_final.pdf`](paper/paper_final.pdf) (TechRxiv DOI to follow).
+Yazeed Alzughaibi, King Abdulaziz University, 2026. PDF: [`paper/paper_final.pdf`](paper/paper_final.pdf) (DOI to follow).
 
 A 720p decode–detect–overlay–encode pipeline with a person detector, in a software and a hardware codec version:
 
