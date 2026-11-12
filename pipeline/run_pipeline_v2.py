@@ -269,7 +269,11 @@ def main():
     fr = np.array([r[2:6] for r in rows[warm_f:]], dtype=float)        # latency, miss, service, cpu
     dr = np.array([r[2:7] for r in det_rows if r[0] >= warm_f], dtype=float) if det_rows else np.zeros((0, 5))
     c_f, c_d = fr[:, 3], (dr[:, 1] if len(dr) else np.array([]))
-    jobs_released = len(range(warm_f, len(rows), n_det)) if len(rows) > warm_f else 0
+    # Jobs actually handed to the detector after warm-up (frames with index % N == 0 that were processed).
+    # Before 2026-11-11 this was len(range(warm_f, len(rows), n_det)), which is off by one when the frame
+    # count ends on 0..4 mod 10 (run5_sw-rms of 04_rms/20261110T202628: logged 92, actual 91).
+    # Full per-job accounting (nominal, overwritten, on time, after the run) is in analysis/review_audit.py.
+    jobs_released = sum(1 for r in rows[warm_f:] if r[12])
 
     analysis = {"period_ms": period * 1e3, "detect_period_ms": det_period * 1e3,
                 "uniprocessor": len(cores) == 1 and a.cv_threads == 1 and a.codec_threads == 1,

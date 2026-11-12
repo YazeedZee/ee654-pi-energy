@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite the paper."
+title: "Is Hardware Offload Enough? Energy, Timing, and Scheduling of a Video Analytics Pipeline on the Raspberry Pi 4"
+authors:
+  - family-names: Alzughaibi
+    given-names: Yazeed
+    affiliation: "King Abdulaziz University, Jeddah, Saudi Arabia"
+repository-code: "https://github.com/YazeedZee/ee654-pi-energy"
+license: MIT
+date-released: 2026-11-12
+version: "1.0"
+keywords:
+  - embedded systems
+  - hardware offload
+  - video processing
+  - energy
+  - DVFS
+  - rate-monotonic scheduling
+  - Raspberry Pi
+preferred-citation:
+  type: article
+  title: "Is Hardware Offload Enough? Energy, Timing, and Scheduling of a Video Analytics Pipeline on the Raspberry Pi 4"
+  authors:
+    - family-names: Alzughaibi
+      given-names: Yazeed
+  year: 2026
+  notes: "Preprint. Add the arXiv identifier once it is assigned."

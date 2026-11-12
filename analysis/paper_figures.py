@@ -3,6 +3,8 @@
 
 Usage (from the repo root):  python3 analysis/paper_figures.py [--root .] [--out paper/figs]
 Every number drawn here comes from data/raw/; the run folders used are listed in RUNS.
+Draft v3 of the paper uses stages.pdf, frame_access.pdf and sched_bg.pdf; temperature.pdf and governor.pdf
+are still produced (their numbers are in figure_numbers.json and quoted in the text).
 """
 import argparse
 import csv
@@ -25,7 +27,7 @@ FIXED, DEFAULT = "#6250d6", "#1baf7a"  # fixed clock / RM priority vs default po
 INK, INK2, GRID = "#0b0b0b", "#52514e", "#d9d8d4"
 
 plt.rcParams.update({
-    "font.family": "serif", "font.serif": ["Times New Roman", "Nimbus Roman", "STIXGeneral", "DejaVu Serif"],
+    "font.family": "serif", "font.serif": ["Times New Roman", "Liberation Serif", "STIXGeneral", "DejaVu Serif"],  # TrueType only: an OTF/CFF font embedded as Type 42 trips PDF checkers
     "mathtext.fontset": "stix", "font.size": 8, "axes.titlesize": 8, "axes.labelsize": 8,
     "xtick.labelsize": 7, "ytick.labelsize": 7, "legend.fontsize": 7, "axes.edgecolor": INK2,
     "axes.labelcolor": INK, "xtick.color": INK2, "ytick.color": INK2, "axes.linewidth": 0.6,
@@ -52,9 +54,12 @@ def fig_stages(raw, out):
     d = raw / RUNS["ref15"]
     stages = [("decode", "Decode"), ("to_bgr", "To BGR"), ("detect", "Detect$^{*}$"),
               ("overlay", "Overlay"), ("to_yuv", "To YUV"), ("encode", "Encode")]
-    mean = {}
+    n_det = 10                                   # detection runs on one frame in ten: show its cost per frame
+    mean, per_call = {}, {}
     for mode, runs in (("sw", ["run1_sw", "run4_sw"]), ("hw", ["run2_hw", "run3_hw"])):
-        mean[mode] = [np.mean([J(d / r / "summary.json")["stages"][k]["mean_ms"] for r in runs]) for k, _ in stages]
+        raw_mean = [np.mean([J(d / r / "summary.json")["stages"][k]["mean_ms"] for r in runs]) for k, _ in stages]
+        per_call[mode] = raw_mean[2]
+        mean[mode] = [v / n_det if k == "detect" else v for (k, _), v in zip(stages, raw_mean)]
     fig, ax = plt.subplots(figsize=(COL_W, 1.85))
     y = np.arange(len(stages))
     h = 0.36
@@ -63,7 +68,7 @@ def fig_stages(raw, out):
         for yi, v in zip(y, mean[mode]):
             ax.text(v * 1.12, yi + off, f"{v:.1f}" if v < 100 else f"{v:.0f}", va="center", fontsize=6.5, color=INK)
     ax.set_xscale("log")
-    ax.set_xlim(0.2, 600)
+    ax.set_xlim(0.2, 100)
     ax.set_yticks(y, [s for _, s in stages])
     ax.invert_yaxis()
     ax.set_xlabel("Mean time per frame (ms, log scale)")
@@ -71,7 +76,10 @@ def fig_stages(raw, out):
     ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2)
     fig.savefig(out / "stages.pdf")
     plt.close(fig)
-    return {m: dict(zip([k for k, _ in stages], v)) for m, v in mean.items()}
+    res = {m: dict(zip([k for k, _ in stages], v)) for m, v in mean.items()}
+    for m in res:
+        res[m]["detect_per_call"] = per_call[m]
+    return res
 
 
 def fig_frame_access(raw, out):
@@ -137,9 +145,10 @@ def fig_temperature(raw, out):
         k = 9
         sm = np.convolve(temp, np.ones(k) / k, mode="valid")
         ax.plot(t[k // 2: -(k // 2)], sm, color=c)
-        ax.text(t[-1] + 3, sm[-1], lab, color=c, fontsize=7, va="center")
-        res[run] = {"start": float(temp[:5].mean()), "end": float(temp[-5:].mean())}
-    ax.set_xlim(0, 235)
+        ax.text(120, sm[int(len(sm) * 120 / t[-1])] + (1.2 if run.endswith("sw") else -1.2), lab, color=c,
+                fontsize=7, ha="center", va="bottom" if run.endswith("sw") else "top")
+        res[run] = {"start": float(temp[:5].mean()), "end": float(temp[-5:].mean()), "window_s": float(t1 - t0)}
+    ax.set_xlim(0, 182)
     ax.set_xlabel("Time in run (s)")
     ax.set_ylabel("SoC temp. (°C)")
     grid(ax)
@@ -166,9 +175,9 @@ def fig_sched(raw, out):
     ax.set_ylim(8, 20000)
     ax.set_xlim(0, 92)
     ax.set_xlabel("Time in run (s)")
-    ax.set_ylabel("Frame response time (ms)")
+    ax.set_ylabel("Frame-task response (ms)")
     grid(ax)
-    ax.legend(loc="upper left")
+    ax.legend(loc="center right", bbox_to_anchor=(1.0, 0.42))
     fig.savefig(out / "sched_bg.pdf")
     plt.close(fig)
     return res

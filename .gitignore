@@ -30,6 +30,8 @@ paper/*.blg
 paper/*.synctex.gz
 paper/*.fdb_latexmk
 paper/*.fls
+paper/paper_draft_*.pdf
+paper/*_arxiv.tar.gz
 
 # Editors / OS
 .vscode/

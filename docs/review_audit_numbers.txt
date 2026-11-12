@@ -1,0 +1,197 @@
+== A. Exp 04 detection-job accounting (warm-up 3 s excluded; deadline = period = 666.7 ms)
+        run         fps     nominal   submitted      logged overwritten   completed      in_run   after_run     on_time  unfinished    R_max_ms  sublag_p50  sublag_max     Cd_mean      Cd_max
+run1_hw-rms        15.0         131         131         131           0         131         130           1         131           0         447        14.0          16         303         305
+run2_hw-cfs        15.0         131         131         131           0         131         130           1         131           0         448        13.8          16         306         310
+run3_sw-cfs         7.9         131          67          67           0          67          66           1           0           0       42893     22767.8       42438         298         299
+run4_sw-rms        10.7         131          92          92          91           1           0           1           0           0       26361     13665.1       25813         295         295
+run5_sw-rms        10.7         131          91          92          90           1           0           1           0           0       27014     13669.6       25866         293         293
+run6_sw-cfs         7.9         131          67          67           0          67          67           0           0           0       42545     22511.5       41945         297         298
+run7_hw-cfs        15.0         131         131         131           0         131         130           1         131           0         445        13.8          16         302         307
+run8_hw-rms        15.0         131         131         131           0         131         130           1         131           0         445        14.1          16         301         304
+run1_hw-rms        15.0         131         131         131           0         131         130           1         131           0         445        13.9          16         303         305
+run2_hw-cfs        13.6         131         118         118          48          70          69           1           0           0        9961      4462.7        8415         311         321
+run3_hw-cfs        13.8         131         120         120          49          71          69           2           0           0        8885      3757.3        7155         309         317
+run4_hw-rms        15.0         131         131         131           0         131         130           1         131           0         447        14.0          16         302         304
+nominal = periodic releases in [3 s, 90 s]; submitted = frames actually handed to the detector (index % N == 0, after warm-up); logged = jobs_released in summary.json (off by one when the frame count ends on 0..4 mod 10); unfinished = submitted - overwritten - completed; sublag = ms from nominal release to hand-off
+
+== B. Frame-task blocking evidence (frames after warm-up)
+                     run   Cf_max  start_late_max  wall-cpu_p99  wall-cpu_max  resp_max
+             run1_hw-rms     24.4            0.08          0.01          0.01      24.5
+             run2_hw-cfs     23.8            3.35         21.96         24.13      46.3
+             run3_sw-cfs    120.1        42518.13        106.09        111.66   42688.4
+             run4_sw-rms    116.4        25847.74          0.13          0.19   25932.7
+             run5_sw-rms    117.5        26034.85          0.12          0.15   26119.9
+             run6_sw-cfs    119.1        42309.58        103.86        111.57   42407.6
+             run7_hw-cfs     24.2            3.10         21.95         23.71      44.5
+             run8_hw-rms     24.3            0.08          0.01          0.01      24.3
+         run1_hw-rms-bg2     24.0            0.09          0.00          0.00      24.1
+         run2_hw-cfs-bg2     22.1         8388.12         65.34         70.30    8463.9
+         run3_hw-cfs-bg2     21.6         7122.22         65.16         68.70    7190.3
+         run4_hw-rms-bg2     24.2            0.09          0.00          0.00      24.2
+start_late = release -> start of service (includes any wait for the GIL or the CPU)
+
+== C. Staleness of boxes drawn on output frames (frames after warm-up with boxes available)
+                     run  age_p50_fr  age_max_fr  lag_p50_ms  lag_max_ms
+             run1_hw-rms          11          16         733        1067   (frames with boxes: 1306/1306)
+             run2_hw-cfs          11          16         733        1067   (frames with boxes: 1306/1306)
+             run3_sw-cfs           8          13         533         867   (frames with boxes: 667/667)
+             run4_sw-rms                         no boxes during the run
+             run5_sw-rms                         no boxes during the run
+             run6_sw-cfs           8          13         533         867   (frames with boxes: 670/670)
+             run7_hw-cfs          11          16         733        1067   (frames with boxes: 1306/1306)
+             run8_hw-rms          12          17         767        1133   (frames with boxes: 1306/1306)
+         run1_hw-rms-bg2          11          16         733        1067   (frames with boxes: 1306/1306)
+         run2_hw-cfs-bg2          31          44        2067        2933   (frames with boxes: 1180/1180)
+         run3_hw-cfs-bg2          31          44        2067        2933   (frames with boxes: 1199/1199)
+         run4_hw-rms-bg2          11          16         733        1067   (frames with boxes: 1306/1306)
+
+== D. Actual encoder output bitrate (target 4 Mb/s)
+20261107T001714/run1_sw          30 fps,  3224 frames:  4.04 Mb/s ( 16.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T001714/run2_hw          30 fps,  5401 frames:  4.00 Mb/s ( 16.7 kB/frame; packets still in the encoder at stop not counted)
+20261107T001714/run3_hw          30 fps,  5401 frames:  4.00 Mb/s ( 16.7 kB/frame; packets still in the encoder at stop not counted)
+20261107T001714/run4_sw          30 fps,  3209 frames:  4.04 Mb/s ( 16.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T003226/run1_sw          15 fps,  2701 frames:  4.05 Mb/s ( 33.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T003226/run2_hw          15 fps,  2701 frames:  3.93 Mb/s ( 32.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T003226/run3_hw          15 fps,  2701 frames:  3.93 Mb/s ( 32.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T003226/run4_sw          15 fps,  2701 frames:  4.05 Mb/s ( 33.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T121158/run1_sw          15 fps,  2701 frames:  4.05 Mb/s ( 33.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T121158/run2_hw          15 fps,  2701 frames:  3.93 Mb/s ( 32.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T121158/run3_hw          15 fps,  2701 frames:  3.93 Mb/s ( 32.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T121158/run4_sw          15 fps,  2701 frames:  4.05 Mb/s ( 33.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T125426/run1_sw          15 fps,  1801 frames:  4.07 Mb/s ( 33.9 kB/frame; packets still in the encoder at stop not counted)
+20261107T125426/run2_hw          15 fps,  1801 frames:  3.93 Mb/s ( 32.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T125426/run3_hw          15 fps,  1801 frames:  3.93 Mb/s ( 32.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T125426/run4_sw          15 fps,  1801 frames:  4.07 Mb/s ( 33.9 kB/frame; packets still in the encoder at stop not counted)
+20261107T130959/run1_sw          15 fps,  1801 frames:  4.07 Mb/s ( 33.9 kB/frame; packets still in the encoder at stop not counted)
+20261107T130959/run2_hw          15 fps,  1801 frames:  3.93 Mb/s ( 32.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T130959/run3_hw          15 fps,  1801 frames:  3.93 Mb/s ( 32.8 kB/frame; packets still in the encoder at stop not counted)
+20261107T130959/run4_sw          15 fps,  1801 frames:  4.07 Mb/s ( 33.9 kB/frame; packets still in the encoder at stop not counted)
+20261110T202628/run1_hw-rms      15 fps,  1351 frames:  3.97 Mb/s ( 33.1 kB/frame; packets still in the encoder at stop not counted)
+20261110T202628/run2_hw-cfs      15 fps,  1351 frames:  3.97 Mb/s ( 33.1 kB/frame; packets still in the encoder at stop not counted)
+20261110T202628/run3_sw-cfs      15 fps,   712 frames:  4.08 Mb/s ( 34.0 kB/frame; packets still in the encoder at stop not counted)
+20261110T202628/run4_sw-rms      15 fps,   963 frames:  4.07 Mb/s ( 33.9 kB/frame; packets still in the encoder at stop not counted)
+20261110T202628/run5_sw-rms      15 fps,   960 frames:  4.08 Mb/s ( 34.0 kB/frame; packets still in the encoder at stop not counted)
+20261110T202628/run6_sw-cfs      15 fps,   715 frames:  4.07 Mb/s ( 34.0 kB/frame; packets still in the encoder at stop not counted)
+20261110T202628/run7_hw-cfs      15 fps,  1351 frames:  3.97 Mb/s ( 33.1 kB/frame; packets still in the encoder at stop not counted)
+20261110T202628/run8_hw-rms      15 fps,  1351 frames:  3.97 Mb/s ( 33.1 kB/frame; packets still in the encoder at stop not counted)
+
+== E. Buffer access
+exp03 sw: raw copy 0.93  OpenCV convert 1.93  copy+OpenCV 2.86  direct swscale 3.94 ms
+exp03 hw: raw copy 2.33  OpenCV convert 2.03  copy+OpenCV 4.36  direct swscale 137.97 ms
+  hw direct / hw copy+OpenCV = 31.7x;  hw direct / sw direct (same converter) = 35.0x
+  converter effect on normal memory (sw): swscale direct - (copy+OpenCV) = 1.09 ms
+  exp03 sysinfo ['throttled=0x50000']: bit16 = under-voltage has occurred since boot, bit18 = throttling has occurred
+exp04 run1_hw-rms: to_bgr (copy + swscale, same converter as 'direct') mean 12.17  p99 14.06 ms
+exp04 run8_hw-rms: to_bgr (copy + swscale, same converter as 'direct') mean 12.23  p99 13.98 ms
+exp04 run4_sw-rms: to_bgr (copy + swscale, same converter as 'direct') mean 7.36  p99 8.25 ms
+exp04 run5_sw-rms: to_bgr (copy + swscale, same converter as 'direct') mean 7.35  p99 8.06 ms
+
+== F. Governor runs (exp 02, 20261107T134531): one value per run is the replicate
+run1_hw-ondemand       power 5.50 W (n=22, lag-1 autocorr +0.14)  det-frame median 121.6 p99 164.3 max 174.6 ms  >145 ms: 9/177  low-clock samples 7%  all-frame miss 20.2%
+run4_hw-ondemand       power 5.09 W (n=31, lag-1 autocorr -0.75)  det-frame median 125.2 p99 143.9 max 147.2 ms  >145 ms: 1/177  low-clock samples 33%  all-frame miss 20.0%
+run2_hw-performance    power 5.12 W (n=22, lag-1 autocorr -0.70)  det-frame median 121.5 p99 138.6 max 142.8 ms  >145 ms: 0/177  low-clock samples 0%  all-frame miss 20.0%
+run3_hw-performance    power 5.38 W (n=26, lag-1 autocorr -0.71)  det-frame median 121.4 p99 137.9 max 144.1 ms  >145 ms: 0/177  low-clock samples 0%  all-frame miss 20.0%
+  Per-run means: ondemand 5.50, 5.09; performance 5.12, 5.38 W -> n = 2 per arm; the between-run spread (0.4 W) is larger than the between-arm difference (0.0 W).
+
+== G. Run windows (first nominal release -> last frame completion), exp 02 15 fps reference
+run1_sw: 2701 frames, window 180.2 s, last nominal release at 180.0 s
+run2_hw: 2701 frames, window 180.1 s, last nominal release at 180.0 s
+run3_hw: 2701 frames, window 180.1 s, last nominal release at 180.0 s
+run4_sw: 2701 frames, window 180.2 s, last nominal release at 180.0 s
+
+== H. Reconstructed packet-retrieval latency: release of frame k -> end of the encoder call that returned frame k's packet (matched as in match_packets; warm-up excluded)
+   Retrieval happens only inside a later encode call, so this bounds when the packet existed from above; it is this application's retrieval latency, not the encoder's processing time.
+20261107T001714/run1_sw            lag frames [0: 3164]  n/a (sw: lag 0 proven)  frame-task p50  37239.7  retrieval p50  37239.7 max  72599.0 ms  over one period 100.0%
+20261107T001714/run2_hw            lag frames [1: 240, 2: 5099]  179/180 key frames matched  frame-task p50     62.5  retrieval p50    128.5 max    233.2 ms  over one period 100.0%
+20261107T001714/run3_hw            lag frames [1: 420, 2: 4919]  179/180 key frames matched  frame-task p50     62.6  retrieval p50    125.3 max    213.0 ms  over one period 100.0%
+20261107T001714/run4_sw            lag frames [0: 3149]  n/a (sw: lag 0 proven)  frame-task p50  37455.6  retrieval p50  37455.6 max  73072.4 ms  over one period 100.0%
+20261107T003226/run1_sw            lag frames [0: 2671]  n/a (sw: lag 0 proven)  frame-task p50     72.3  retrieval p50     72.3 max    292.5 ms  over one period  53.0%
+20261107T003226/run2_hw            lag frames [1: 360, 2: 2309]  179/180 key frames matched  frame-task p50     15.2  retrieval p50    148.4 max    311.4 ms  over one period 100.0%
+20261107T003226/run3_hw            lag frames [1: 390, 2: 2279]  179/180 key frames matched  frame-task p50     15.0  retrieval p50    148.2 max    312.8 ms  over one period 100.0%
+20261107T003226/run4_sw            lag frames [0: 2671]  n/a (sw: lag 0 proven)  frame-task p50     71.6  retrieval p50     71.6 max    307.1 ms  over one period  51.6%
+20261107T121158/run1_sw            lag frames [0: 2671]  n/a (sw: lag 0 proven)  frame-task p50     72.3  retrieval p50     72.3 max    391.7 ms  over one period  52.5%
+20261107T121158/run2_hw            lag frames [1: 360, 2: 2309]  179/180 key frames matched  frame-task p50     15.2  retrieval p50    148.4 max    326.2 ms  over one period 100.0%
+20261107T121158/run3_hw            lag frames [1: 360, 2: 2309]  179/180 key frames matched  frame-task p50     14.9  retrieval p50    148.1 max    323.0 ms  over one period 100.0%
+20261107T121158/run4_sw            lag frames [0: 2671]  n/a (sw: lag 0 proven)  frame-task p50     70.9  retrieval p50     70.9 max    314.2 ms  over one period  52.3%
+20261107T125426/run1_sw            lag frames [0: 1771]  n/a (sw: lag 0 proven)  frame-task p50     74.6  retrieval p50     74.6 max    325.3 ms  over one period  54.2%
+20261107T125426/run2_hw            lag frames [1: 360, 2: 1409]  119/120 key frames matched  frame-task p50     14.9  retrieval p50    148.1 max    297.3 ms  over one period 100.0%
+20261107T125426/run3_hw            lag frames [1: 360, 2: 1409]  119/120 key frames matched  frame-task p50     14.9  retrieval p50    148.1 max    313.8 ms  over one period 100.0%
+20261107T125426/run4_sw            lag frames [0: 1771]  n/a (sw: lag 0 proven)  frame-task p50     70.0  retrieval p50     70.0 max    299.3 ms  over one period  51.9%
+20261107T130959/run1_sw            lag frames [0: 1771]  n/a (sw: lag 0 proven)  frame-task p50     71.8  retrieval p50     71.8 max    305.4 ms  over one period  52.3%
+20261107T130959/run2_hw            lag frames [1: 390, 2: 1379]  119/120 key frames matched  frame-task p50     15.0  retrieval p50    148.1 max    295.9 ms  over one period 100.0%
+20261107T130959/run3_hw            lag frames [1: 360, 2: 1409]  119/120 key frames matched  frame-task p50     15.1  retrieval p50    148.2 max    310.2 ms  over one period 100.0%
+20261107T130959/run4_sw            lag frames [0: 1771]  n/a (sw: lag 0 proven)  frame-task p50     72.3  retrieval p50     72.3 max    328.5 ms  over one period  52.5%
+20261110T202628/run1_hw-rms        lag frames [2: 1304]  89/90 key frames matched  frame-task p50     19.0  retrieval p50    152.3 max    157.8 ms  over one period 100.0%
+20261110T202628/run2_hw-cfs        lag frames [1: 1305]  89/90 key frames matched  frame-task p50     33.7  retrieval p50    100.3 max    113.0 ms  over one period 100.0%
+20261110T202628/run3_sw-cfs        lag frames [0: 667]  n/a (sw: lag 0 proven)  frame-task p50  22768.0  retrieval p50  22768.0 max  42688.4 ms  over one period 100.0%
+20261110T202628/run4_sw-rms        lag frames [0: 918]  n/a (sw: lag 0 proven)  frame-task p50  13697.3  retrieval p50  13697.3 max  25932.7 ms  over one period 100.0%
+20261110T202628/run5_sw-rms        lag frames [0: 915]  n/a (sw: lag 0 proven)  frame-task p50  13792.9  retrieval p50  13792.9 max  26119.9 ms  over one period 100.0%
+20261110T202628/run6_sw-cfs        lag frames [0: 670]  n/a (sw: lag 0 proven)  frame-task p50  22628.6  retrieval p50  22628.6 max  42407.6 ms  over one period 100.0%
+20261110T202628/run7_hw-cfs        lag frames [1: 1305]  89/90 key frames matched  frame-task p50     34.0  retrieval p50    100.7 max    111.2 ms  over one period 100.0%
+20261110T202628/run8_hw-rms        lag frames [2: 1304]  89/90 key frames matched  frame-task p50     19.0  retrieval p50    152.4 max    157.7 ms  over one period 100.0%
+20261110T204647/run1_hw-rms-bg2    lag frames [2: 1304]  89/90 key frames matched  frame-task p50     19.1  retrieval p50    152.5 max    157.4 ms  over one period 100.0%
+20261110T204647/run2_hw-cfs-bg2    lag frames [1: 1179]  81/82 key frames matched  frame-task p50   4488.7  retrieval p50   4555.9 max   8530.5 ms  over one period 100.0%
+20261110T204647/run3_hw-cfs-bg2    lag frames [1: 1198]  82/83 key frames matched  frame-task p50   3772.4  retrieval p50   3841.2 max   7257.0 ms  over one period 100.0%
+20261110T204647/run4_hw-rms-bg2    lag frames [2: 1304]  89/90 key frames matched  frame-task p50     19.4  retrieval p50    152.7 max    157.6 ms  over one period 100.0%
+   sw: libx264 (zerolatency) starts at lag 0 (first call returns a packet) and no later call is empty, so with one packet per frame its lag is 0 for every frame.
+
+== I. Staleness of drawn boxes in wall-clock time: release of the analysed frame -> completion of the frame task for the frame on which its boxes are drawn
+             run1_hw-rms  content lag p50    733 ms  wall-clock p50      756 max     1089 ms
+             run2_hw-cfs  content lag p50    733 ms  wall-clock p50      776 max     1108 ms
+             run3_sw-cfs  content lag p50    533 ms  wall-clock p50    23410 max    43422 ms
+             run4_sw-rms  no boxes during the run
+             run5_sw-rms  no boxes during the run
+             run6_sw-cfs  content lag p50    533 ms  wall-clock p50    23205 max    43243 ms
+             run7_hw-cfs  content lag p50    733 ms  wall-clock p50      775 max     1109 ms
+             run8_hw-rms  content lag p50    767 ms  wall-clock p50      788 max     1152 ms
+         run1_hw-rms-bg2  content lag p50    733 ms  wall-clock p50      756 max     1089 ms
+         run2_hw-cfs-bg2  content lag p50   2067 ms  wall-clock p50     6535 max    11177 ms
+         run3_hw-cfs-bg2  content lag p50   2067 ms  wall-clock p50     5834 max     9767 ms
+         run4_hw-rms-bg2  content lag p50    733 ms  wall-clock p50      756 max     1089 ms
+
+== J. Equal-work replicates (pipeline v1, 15 fps, N = 10): runs behind Table I
+  sw 20261107T003226/run1_sw  fps 14.993 cores 2.1755 cpu/frame 145.10 ms load factor 0.8688 miss 53.0%
+  sw 20261107T003226/run4_sw  fps 14.992 cores 2.1690 cpu/frame 144.67 ms load factor 0.8655 miss 51.6%
+  sw 20261107T121158/run1_sw  fps 14.993 cores 2.1733 cpu/frame 144.95 ms load factor 0.8667 miss 52.5%
+  sw 20261107T121158/run4_sw  fps 14.991 cores 2.1764 cpu/frame 145.18 ms load factor 0.8673 miss 52.3%
+  sw 20261107T125426/run1_sw  fps 14.990 cores 2.1821 cpu/frame 145.57 ms load factor 0.8741 miss 54.2%
+  sw 20261107T125426/run4_sw  fps 14.990 cores 2.1756 cpu/frame 145.14 ms load factor 0.8650 miss 51.9%
+  sw 20261107T130959/run1_sw  fps 14.990 cores 2.1786 cpu/frame 145.34 ms load factor 0.8655 miss 52.3%
+  sw 20261107T130959/run4_sw  fps 14.990 cores 2.1741 cpu/frame 145.04 ms load factor 0.8681 miss 52.5%
+  sw: 8 runs; spread (max-min)/min: fps 0.02%, cores 0.60%, cpu/frame 0.62%, load factor 1.05%
+  hw 20261107T003226/run2_hw  fps 14.996 cores 1.0579 cpu/frame 70.55 ms load factor 0.4095 miss 20.5%
+  hw 20261107T003226/run3_hw  fps 14.994 cores 1.0434 cpu/frame 69.58 ms load factor 0.4054 miss 20.2%
+  hw 20261107T121158/run2_hw  fps 14.996 cores 1.0502 cpu/frame 70.03 ms load factor 0.4097 miss 20.6%
+  hw 20261107T121158/run3_hw  fps 14.996 cores 1.0523 cpu/frame 70.17 ms load factor 0.4065 miss 20.5%
+  hw 20261107T125426/run2_hw  fps 14.992 cores 1.0497 cpu/frame 70.02 ms load factor 0.4053 miss 20.2%
+  hw 20261107T125426/run3_hw  fps 14.988 cores 1.0518 cpu/frame 70.17 ms load factor 0.4053 miss 20.5%
+  hw 20261107T130959/run2_hw  fps 14.992 cores 1.0459 cpu/frame 69.76 ms load factor 0.4050 miss 20.3%
+  hw 20261107T130959/run3_hw  fps 14.988 cores 1.0544 cpu/frame 70.35 ms load factor 0.4076 miss 20.4%
+  hw: 8 runs; spread (max-min)/min: fps 0.05%, cores 1.39%, cpu/frame 1.39%, load factor 1.17%
+
+== K. Governor runs: cpufreq frequency logged at the end of the previous frame and of the frame itself, for detection frames > 145 ms (frame-boundary samples only)
+  run1_hw-ondemand     detection frames 177, at low clock 22 (median 139.7 vs 121.4 ms); >145 ms: 9 [174.6 ms @ 900/1800 MHz, 166.4 ms @ 1000/1800 MHz, 163.7 ms @ 1100/1800 MHz, 161.8 ms @ 1100/1800 MHz, 158.5 ms @ 1000/1800 MHz, 158.2 ms @ 1000/1800 MHz, 157.1 ms @ 1000/1800 MHz, 155.9 ms @ 1000/1800 MHz, 155.1 ms @ 900/1800 MHz]
+  run4_hw-ondemand     detection frames 177, at low clock 10 (median 124.0 vs 125.2 ms); >145 ms: 1 [147.2 ms @ 1800/1800 MHz]
+  run2_hw-performance  detection frames 177, at low clock 0 (median nan vs 121.5 ms); >145 ms: 0 []
+  run3_hw-performance  detection frames 177, at low clock 0 (median nan vs 121.4 ms); >145 ms: 0 []
+
+== L. Hardware encoder: later empty calls (lag grows by one) relative to encoder key frames (every GOP) and to the 375-frame input loop
+  20261107T001714/run2_hw            30 fps: call 301 (call - last key frame = 1; frames after loop start = 301)
+  20261107T001714/run3_hw            30 fps: call 481 (call - last key frame = 1; frames after loop start = 106)
+  20261107T003226/run2_hw            15 fps: call 391 (call - last key frame = 1; frames after loop start = 16)
+  20261107T003226/run3_hw            15 fps: call 421 (call - last key frame = 1; frames after loop start = 46)
+  20261107T121158/run2_hw            15 fps: call 391 (call - last key frame = 1; frames after loop start = 16)
+  20261107T121158/run3_hw            15 fps: call 391 (call - last key frame = 1; frames after loop start = 16)
+  20261107T125426/run2_hw            15 fps: call 391 (call - last key frame = 1; frames after loop start = 16)
+  20261107T125426/run3_hw            15 fps: call 391 (call - last key frame = 1; frames after loop start = 16)
+  20261107T130959/run2_hw            15 fps: call 421 (call - last key frame = 1; frames after loop start = 46)
+  20261107T130959/run3_hw            15 fps: call 391 (call - last key frame = 1; frames after loop start = 16)
+  20261110T202628/run1_hw-rms        15 fps: none
+  20261110T202628/run2_hw-cfs        15 fps: none
+  20261110T202628/run7_hw-cfs        15 fps: none
+  20261110T202628/run8_hw-rms        15 fps: none
+  20261110T204647/run1_hw-rms-bg2    15 fps: none
+  20261110T204647/run2_hw-cfs-bg2    15 fps: none
+  20261110T204647/run3_hw-cfs-bg2    15 fps: none
+  20261110T204647/run4_hw-rms-bg2    15 fps: none
+
