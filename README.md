@@ -8,7 +8,7 @@ Course project for EE654 Embedded and Real-Time Systems (Fall 2026).
 **Is Hardware Offload Enough? Energy, Timing, and Scheduling of a Video Analytics Pipeline on the Raspberry Pi 4**
 Yazeed Alzughaibi, King Abdulaziz University, 2026. Preprint: [doi:10.5281/zenodo.24166003](https://doi.org/10.5281/zenodo.24166003). PDF also in this repo: [`paper/paper_final.pdf`](paper/paper_final.pdf).
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24166003.svg)](https://doi.org/10.5281/zenodo.24166003)
+Paper: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24166003.svg)](https://doi.org/10.5281/zenodo.24166003) Code and data (`paper-v1`): [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24165559.svg)](https://doi.org/10.5281/zenodo.24165559) Author: [ORCID 0009-0008-4048-777X](https://orcid.org/0009-0008-4048-777X)
 
 A 720p decode–detect–overlay–encode pipeline with a person detector, in a software and a hardware codec version:
 
@@ -108,7 +108,7 @@ Plots are generated on the PC only (never on the Pi), so the two machines never 
 
 ## Changelog
 
-- **v1.0** (2026-11-12): Paper published as a preprint on Zenodo, doi:10.5281/zenodo.24166003.
+- **v1.0** (2026-11-12): Paper published as a preprint on Zenodo, doi:10.5281/zenodo.24166003; code and data archive doi:10.5281/zenodo.24165559; author ORCID.
 - **v0.9** (2026-11-12): Release preparation: paper section, licenses (MIT code; CC BY 4.0 data, docs, paper), CITATION.cff, publishing guide (`docs/publishing.md`), preprint metadata (`paper/preprint_metadata.md`).
 - **v0.8** (2026-11-11): Run manifest; audit sections H–K (encoder output lag, wall-clock staleness, replicates, per-frame frequency); paper draft v3.
 - **v0.7** (2026-11-11): Review audit script and response; paper draft v2; `run_pipeline_v2.py` counts handed-over detection jobs correctly (earlier `summary.json` files keep the old count, off by one in one run).

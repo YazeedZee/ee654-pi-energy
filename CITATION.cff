@@ -5,6 +5,7 @@ authors:
   - family-names: Alzughaibi
     given-names: Yazeed
     affiliation: "King Abdulaziz University, Jeddah, Saudi Arabia"
+    orcid: "https://orcid.org/0009-0008-4048-777X"
 repository-code: "https://github.com/YazeedZee/ee654-pi-energy"
 license: MIT
 date-released: 2026-11-12
@@ -21,12 +22,16 @@ identifiers:
   - type: doi
     value: "10.5281/zenodo.24166003"
     description: "The paper (preprint on Zenodo)"
+  - type: doi
+    value: "10.5281/zenodo.24165559"
+    description: "Code and data archive of release paper-v1"
 preferred-citation:
   type: article
   title: "Is Hardware Offload Enough? Energy, Timing, and Scheduling of a Video Analytics Pipeline on the Raspberry Pi 4"
   authors:
     - family-names: Alzughaibi
       given-names: Yazeed
+      orcid: "https://orcid.org/0009-0008-4048-777X"
   year: 2026
   doi: "10.5281/zenodo.24166003"
   url: "https://doi.org/10.5281/zenodo.24166003"
